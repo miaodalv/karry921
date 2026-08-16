@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<!-- 本工作台为本地单文件 HTML，遵循 workspace-builder（小台）规范：全内联、零外链、localStorage 存储。
+     王俊凯应援蓝主题 · 小螃蟹装饰 · 可上传真实图片 DIY。AI 能力通过「设置」中配置接口后启用。 -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>蓝潮创作工作台 · 王俊凯应援蓝</title>
+<style>
+  :root{
+    --blue-deep:#16367a; --blue:#2d6cdf; --blue-light:#5b9bff; --blue-bg:#eaf2ff;
+    --bg:#f3f7ff; --card:#ffffff; --text:#1b2a4a; --muted:#6b7a99;
+    --red:#e23c3c; --green:#1faa6b; --line:#dce7fb; --shadow:0 6px 22px rgba(35,80,180,.10);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg);}
+  body{display:flex;min-height:100vh;font-size:15px;}
+  a{color:var(--blue);}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  input,textarea,select{font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;background:#fff;color:var(--text);outline:none;}
+  input:focus,textarea:focus,select:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(91,155,255,.18);}
+  textarea{resize:vertical;min-height:90px;line-height:1.5;}
+
+  /* ---------- 侧边栏 ---------- */
+  .sidebar{width:220px;flex:0 0 220px;background:linear-gradient(180deg,var(--blue-deep),#0f2557);color:#fff;padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:8px;padding:6px 8px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px;}
+  .brand .logo{width:38px;height:32px;flex:0 0 38px;}
+  .brand h1{font-size:16px;margin:0;line-height:1.2;font-weight:800;letter-spacing:.5px;}
+  .brand small{display:block;font-size:10px;color:#9fc0ff;font-weight:500;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;color:#cfe0ff;font-size:14px;font-weight:600;transition:.18s;text-align:left;width:100%;}
+  .nav-item .ic{width:22px;height:22px;flex:0 0 22px;}
+  .nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+  .nav-item.active{background:#fff;color:var(--blue-deep);box-shadow:var(--shadow);}
+  .nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:11px;border-radius:20px;padding:1px 7px;font-weight:700;}
+  .side-foot{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:#8fb0ee;line-height:1.6;}
+
+  /* ---------- 主区 ---------- */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow-y:auto;}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(243,247,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 18px;display:flex;align-items:center;gap:12px;}
+  .topbar .title{font-weight:800;font-size:17px;}
+  .topbar .spacer{flex:1;}
+  .icon-btn{width:42px;height:42px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
+  .icon-btn svg{width:20px;height:20px;}
+  .sync-dot{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .sync-dot i{width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block;}
+
+  /* 今天要处理 */
+  .today{margin:14px 18px 0;background:linear-gradient(120deg,#fff,#eef5ff);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);}
+  .today h3{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:8px;}
+  .today h3 .crab{width:20px;height:18px;}
+  .today-list{display:flex;flex-direction:column;gap:8px;}
+  .today-item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;}
+  .today-item .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--blue);flex:0 0 auto;}
+  .today-item.overdue .tag{background:#fdeaea;color:var(--red);}
+  .today-item .txt{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .today-item .do{font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:6px 12px;border-radius:20px;flex:0 0 auto;}
+  .today-empty{font-size:13px;color:var(--muted);}
+
+  .content{padding:16px 18px 40px;flex:1;}
+  .section{display:none;animation:fade .25s ease;}
+  .section.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+  .sec-head h2{margin:0;font-size:20px;}
+  .sec-head p{margin:0;color:var(--muted);font-size:13px;flex:1;min-width:200px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:#fff;font-weight:700;padding:10px 16px;border-radius:12px;font-size:14px;box-shadow:var(--shadow);}
+  .btn.ghost{background:#fff;color:var(--blue);border:1px solid var(--blue-light);box-shadow:none;}
+  .btn.sm{padding:7px 12px;font-size:13px;border-radius:10px;}
+  .btn:active{transform:translateY(1px);}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);}
+  .grid{display:grid;gap:14px;}
+  .grid.cols2{grid-template-columns:repeat(2,1fr);}
+  .grid.cols3{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:1100px){.grid.cols3{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:768px){.grid.cols2,.grid.cols3{grid-template-columns:1fr;}}
+
+  .stat{display:flex;flex-direction:column;gap:2px;}
+  .stat .n{font-size:24px;font-weight:800;color:var(--blue-deep);}
+  .stat .l{font-size:12px;color:var(--muted);}
+
+  /* 列表/卡片 */
+  .item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);}
+  .item .row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .item h4{margin:0;font-size:15px;flex:1;}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--blue-bg);color:var(--blue);}
+  .pill.red{background:#fdeaea;color:var(--red);}
+  .pill.green{background:#e7f7ef;color:var(--green);}
+  .pill.gray{background:#eef1f6;color:var(--muted);}
+  .item p{margin:6px 0;font-size:13px;color:var(--muted);line-height:1.6;}
+  .item .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .link{color:var(--blue);word-break:break-all;font-size:13px;}
+
+  .empty{text-align:center;color:var(--muted);padding:30px;font-size:14px;}
+
+  /* 图鉴 */
+  .gcard img{width:100%;height:170px;object-fit:cover;border-radius:12px;background:var(--blue-bg);}
+  .gcard .prompt{font-size:12px;background:#f6f9ff;border:1px dashed var(--line);border-radius:10px;padding:8px;margin-top:8px;color:var(--text);word-break:break-all;font-family:ui-monospace,monospace;line-height:1.5;}
+
+  /* 学院树 */
+  .tree-wrap{display:flex;align-items:flex-end;gap:6px;justify-content:center;padding:10px;}
+  .tree{transition:.3s;}
+  .progress-track{height:12px;background:var(--blue-bg);border-radius:20px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-light),var(--blue));border-radius:20px;transition:.4s;}
+
+  /* 弹窗 */
+  .modal-bg{position:fixed;inset:0;background:rgba(15,30,70,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:24px;overflow-y:auto;}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border-radius:18px;max-width:760px;width:100%;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);margin:auto 0;}
+  .modal h3{margin:0 0 12px;font-size:18px;display:flex;align-items:center;gap:8px;}
+  .modal .close{margin-left:auto;font-size:22px;color:var(--muted);width:36px;height:36px;border-radius:10px;}
+  .modal .close:hover{background:var(--blue-bg);}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--blue-deep);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,.3);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .cover{width:100%;height:150px;object-fit:cover;border-radius:16px;background:linear-gradient(120deg,var(--blue),var(--blue-light));}
+  .cover-empty{display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;border-radius:16px;background:linear-gradient(120deg,var(--blue),var(--blue-light));height:150px;cursor:pointer;}
+
+  .note{background:#fff8e6;border:1px solid #ffe6a8;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#8a6d1f;line-height:1.6;margin-bottom:12px;}
+  .note.blue{background:#eef5ff;border-color:var(--line);color:var(--blue-deep);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top;}
+  th{background:var(--blue-bg);color:var(--blue-deep);font-weight:700;}
+
+  /* 移动端 */
+  @media(max-width:768px){
+    body{flex-direction:column;}
+    .sidebar{width:100%;flex:0 0 auto;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:10px;}
+    .brand{display:none;}
+    .nav-item{flex:0 0 auto;flex-direction:column;gap:4px;padding:8px 12px;font-size:11px;text-align:center;min-width:64px;}
+    .nav-item .badge{position:absolute;}
+    .side-foot{display:none;}
+    .main{height:auto;overflow:visible;}
+    .topbar{position:sticky;}
+    .content{padding:14px 12px 60px;}
+    .today{margin:12px 12px 0;}
+  }
+
+  /* 拆解台榜单 / 养猫 */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;}
+  .tabs{display:flex;gap:8px;}
+  .tab{border:1px solid var(--line);background:#fff;color:var(--blue-deep);padding:7px 14px;border-radius:20px;cursor:pointer;font-size:13px;}
+  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .cat-banner{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(120deg,#eaf2ff,#f3f8ff);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:6px 0 4px;}
+  .cat-banner .big{font-size:15px;font-weight:800;color:var(--blue-deep);}
+  .cat-banner .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .cat-banner .reward{margin-left:auto;font-size:13px;font-weight:700;color:#d97706;background:#fff7ed;border:1px solid #fed7aa;padding:6px 12px;border-radius:20px;}
+  .vcard{display:flex;flex-direction:column;overflow:hidden;}
+  .vcard .cover{width:100%;aspect-ratio:3/4;object-fit:cover;background:#e9eef7;border-radius:12px 12px 0 0;cursor:pointer;}
+  .vcard .cover.ph{display:flex;align-items:center;justify-content:center;font-size:30px;color:#9bb4d8;}
+  .vcard .body{padding:10px 12px 12px;}
+  .vcard h4{margin:0 0 4px;font-size:14px;line-height:1.35;}
+  .vcard .meta{font-size:11px;color:var(--muted);margin:2px 0;}
+  .vcard .desc{font-size:12px;color:#445;line-height:1.5;max-height:54px;overflow:hidden;}
+  .vcard .tags{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0;}
+  .vcard .tag{font-size:10px;background:var(--blue-bg);color:var(--blue-deep);padding:2px 7px;border-radius:10px;}
+  .vcard .acts{display:flex;gap:6px;margin-top:8px;}
+  .vcard .acts .btn{flex:1;}
+  .vcard.done{outline:2px solid #16a34a;}
+  .emotion-chart{width:100%;height:120px;border:1px solid var(--line);border-radius:10px;background:#fff;}
+  .tmpl-section{margin-bottom:14px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;}
+  .tmpl-section h4{margin:0 0 8px;font-size:13px;color:var(--blue-deep);}
+  .tmpl-section .none-btn{float:right;font-size:11px;color:var(--muted);cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:#fff;}
+  .tmpl-row{display:grid;gap:6px;margin-bottom:6px;}
+  .tmpl-row.t2{grid-template-columns:1fr 1fr;}
+  .cat-home{display:grid;grid-template-columns:1fr;gap:14px;}
+  .cat-stage{background:linear-gradient(160deg,#eaf2ff,#dbe9ff);border-radius:20px;padding:22px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .cat-stage .cat-svg{width:140px;height:140px;}
+  .cat-stage .mood{font-size:13px;color:var(--blue-deep);margin-top:8px;font-weight:700;}
+  .cat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .cat-stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;}
+  .cat-stat .n{font-size:22px;font-weight:800;color:var(--blue-deep);}
+  .cat-stat .l{font-size:12px;color:var(--muted);margin-top:2px;}
+  .food-bar{height:12px;background:#e9eef7;border-radius:8px;overflow:hidden;margin-top:8px;}
+  .food-bar i{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#2563eb);}
+  .xp-bar{height:12px;background:#e9eef7;border-radius:8px;overflow:hidden;margin-top:8px;}
+  .xp-bar i{display:block;height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);}
+
+</head>
+<body>
+
+<!-- ============ 侧边栏 ============ -->
+<aside class="sidebar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 100 80"><ellipse cx="50" cy="46" rx="27" ry="19" fill="#5b9bff"/><circle cx="40" cy="30" r="6" fill="#fff"/><circle cx="60" cy="30" r="6" fill="#fff"/><circle cx="40" cy="30" r="3" fill="#16367a"/><circle cx="60" cy="30" r="3" fill="#16367a"/><circle cx="16" cy="42" r="11" fill="#2d6cdf"/><circle cx="84" cy="42" r="11" fill="#2d6cdf"/><path d="M26 62 L16 74 M40 66 L36 78 M60 66 L64 78 M74 62 L84 74" stroke="#5b9bff" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M42 52 Q50 58 58 52" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+    <div><h1>蓝潮创作台</h1><small>王俊凯应援蓝 · 小螃蟹</small></div>
+  </div>
+  <button class="nav-item active" data-sec="chaijie" onclick="app.show('chaijie')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>拆解台</button>
+  <button class="nav-item" data-sec="tujian" onclick="app.show('tujian')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>图鉴台</button>
+  <button class="nav-item" data-sec="manju" onclick="app.show('manju')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>漫剧台</button>
+  <button class="nav-item" data-sec="lapian" onclick="app.show('lapian')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z" fill="currentColor"/></svg>拉片台</button>
+  <button class="nav-item" data-sec="xueyuan" onclick="app.show('xueyuan')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c0 1 3 3 5 3s5-2 5-3v-5"/></svg>学院台</button>
+  <button class="nav-item" data-sec="chuangzuo" onclick="app.show('chuangzuo')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3z"/><path d="M8 9h8M8 12h5"/></svg>创作台</button>
+  <button class="nav-item" data-sec="cat" onclick="app.show('cat')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11a7 7 0 0 1 14 0v6H5z"/><path d="M5 11l-2-2M19 11l2-2M9 20v-3M15 20v-3"/></svg>🐱 蓝色猫窝</button>
+  <div class="side-foot">本地存储 · 数据在你浏览器<br>配置 AI 接口后可启用智能能力<br>🦀 小螃蟹陪你创作</div>
+</aside>
+
+<!-- ============ 主区 ============ -->
+<div class="main">
+  <div class="topbar">
+    <div class="title" id="topTitle">拆解台</div>
+    <div class="spacer"></div>
+    <span class="sync-dot"><i></i><span id="syncText">本地已保存</span></span>
+    <button class="icon-btn" title="导出备份" onclick="app.exportJSON()"><svg viewBox="0 0 24 24" fill="none" stroke="#2d6cdf" stroke-width="2"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 21h16"/></svg></button>
+    <button class="icon-btn" title="导入恢复" onclick="app.importJSON()"><svg viewBox="0 0 24 24" fill="none" stroke="#2d6cdf" stroke-width="2"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M4 21h16"/></svg></button>
+    <button class="icon-btn" title="设置 / AI 接口" onclick="app.openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="#2d6cdf" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1L14.5 3h-5l-.3 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5L2 11a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h5l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z"/></svg></button>
+  </div>
+
+  <!-- 今天要处理 -->
+  <div class="today">
+    <h3><svg class="crab" viewBox="0 0 100 80"><ellipse cx="50" cy="46" rx="22" ry="15" fill="#2d6cdf"/><circle cx="42" cy="32" r="4" fill="#fff"/><circle cx="58" cy="32" r="4" fill="#fff"/><circle cx="42" cy="32" r="2" fill="#16367a"/><circle cx="58" cy="32" r="2" fill="#16367a"/><circle cx="22" cy="44" r="8" fill="#5b9bff"/><circle cx="78" cy="44" r="8" fill="#5b9bff"/><path d="M44 52 Q50 57 56 52" stroke="#fff" stroke-width="2" fill="none"/></svg>今天要处理 <span id="todayCount" style="font-size:12px;color:var(--muted);font-weight:600;"></span></h3>
+    <div class="today-list" id="todayList"></div>
+  </div>
+
+  <div class="content">
+    <!-- 拆解台 -->
+    <section class="section active" id="sec-chaijie">
+      <div class="sec-head">
+        <h2>🦀 短剧爆款拆解台</h2>
+        <p>每天凌晨自动从 <b>红果每日榜 / 每周榜</b> 推送 20 个真实爆款短剧。你只需<b>挑选 1 个写拆解</b>就算完成任务，立刻获得喂养蓝色猫咪的猫粮🐱。</p>
+      </div>
+      <div id="dailyBanner" class="cat-banner"></div>
+      <div class="toolbar">
+        <div class="tabs" id="boardTabs">
+          <button class="tab active" onclick="app.switchBoard('day')">🔥 红果每日榜</button>
+          <button class="tab" onclick="app.switchBoard('week')">📅 红果每周榜</button>
+        </div>
+        <button class="btn ghost sm" onclick="app.refreshFeed(true)">🔄 立即刷新榜单</button>
+      </div>
+      <div id="feedStatus" class="note blue"></div>
+      <div class="grid" id="chaijieList"></div>
+    </section>
+
+    <!-- 图鉴台 -->
+    <section class="section" id="sec-tujian">
+      <div class="sec-head">
+        <h2>🖼️ AI 图鉴台</h2>
+        <p>搜集 Midjourney / 即梦 / 豆包 / 可灵 等平台的爆款 AI 图与对应提示词，供你学习临摹。</p>
+        <button class="btn" onclick="app.addTujian()">＋ 添加一张</button>
+      </div>
+      <div class="grid cols3" id="tujianList"></div>
+    </section>
+
+    <!-- 漫剧台 -->
+    <section class="section" id="sec-manju">
+      <div class="sec-head">
+        <h2>🎬 AI 漫剧工坊</h2>
+        <p>对接「AI 漫剧全流程生成」能力，问答式生成剧本 / 角色提示词 / 资产提示词 / 场景提示词 / 首尾帧提示词 / 视频提示词。</p>
+        <button class="btn" onclick="app.addManju()">＋ 新问答</button>
+      </div>
+      <div class="note blue">选择产出类型 → 输入需求 → 生成。配置 AI 接口后由大模型真实生成；未配置时给出结构化提示词模板。</div>
+      <div class="grid" id="manjuList"></div>
+    </section>
+
+    <!-- 拉片台 -->
+    <section class="section" id="sec-lapian">
+      <div class="sec-head">
+        <h2>🔍 视频拉片分析台</h2>
+        <p>上传任意视频链接（爆款短视频 / AI 短剧 / 真人短剧 / 网剧 / 电视剧 / 电影），系统化拉片分析。</p>
+        <div class="toolbar">
+          <div class="field" style="flex:1;min-width:200px"><label>🛠 使用技能（拉片时调用）</label><select id="lapianSkillSel" onchange="app.setLapianSkill()"></select></div>
+          <button class="btn" onclick="app.addLapian()">＋ 添加视频</button>
+        </div>
+        <div class="note" style="margin-top:6px;">在 WorkBuddy 对话中调用所选技能可获得专业拉片；本工作台记录你选用的技能。默认「导演级视频拉片 Skill」。</div>
+      </div>
+      <div class="grid" id="lapianList"></div>
+    </section>
+
+    <!-- 学院台 -->
+    <section class="section" id="sec-xueyuan">
+      <div class="sec-head">
+        <h2>🎓 编导学习学院</h2>
+        <p>剧本 / 分镜脚本 / 摄影审美 / 剪辑与节奏 四大学科。每日按阶段推送学习视频，小树记录你的成长。</p>
+        <button class="btn" onclick="app.pushSchool()">🔄 刷新今日推荐</button>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div class="tree-wrap" id="treeWrap"></div>
+          <div style="flex:1;min-width:200px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><b>总进度</b><span id="schoolPct">0%</span></div>
+            <div class="progress-track"><div class="progress-fill" id="schoolBar" style="width:0%"></div></div>
+            <p style="font-size:12px;color:var(--muted);margin:8px 0 0;">当前阶段：<b id="schoolStage">播种期</b> · 已学 <b id="schoolDone">0</b> 节</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid cols2" id="schoolList"></div>
+    </section>
+
+    <!-- 创作台 -->
+    <section class="section" id="sec-chuangzuo">
+      <div class="sec-head">
+        <h2>🚀 自媒体创作台</h2>
+        <p>爆款脚本生成器 + 视频锐评（上传你的或新人视频，分析为什么不火并给建议）。</p>
+      </div>
+      <div class="grid cols2">
+        <div class="card">
+          <h4 style="margin-top:0">📝 爆款脚本生成</h4>
+          <div class="field"><label>主题 / 产品</label><input id="scriptTopic" placeholder="如：职场新人 vlog"></div>
+          <div class="grid cols2">
+            <div class="field"><label>平台</label><select id="scriptPlat"><option>抖音</option><option>小红书</option><option>视频号</option><option>B站</option></select></div>
+            <div class="field"><label>时长</label><select id="scriptLen"><option>15s 短</option><option selected>30-60s</option><option>3-5min 中</option></select></div>
+          </div>
+          <button class="btn" onclick="app.genScript()">✨ 生成爆款脚本</button>
+          <div id="scriptOut" style="margin-top:12px;"></div>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">🔥 视频锐评</h4>
+          <div class="field"><label>视频链接</label><input id="critiqueUrl" placeholder="粘贴视频链接"></div>
+          <div class="field"><label>你的描述（可选）</label><textarea id="critiqueDesc" placeholder="简单说下视频内容与预期…"></textarea></div>
+          <button class="btn" onclick="app.genCritique()">🔍 为什么不火？</button>
+          <div id="critiqueOut" style="margin-top:12px;"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h4 style="margin-top:0">历史记录</h4>
+        <div id="mediaList" class="grid" style="gap:8px;"></div>
+      </div>
+    </section>
+
+    <!-- 蓝色猫窝 -->
+    <section class="section" id="sec-cat">
+      <div class="sec-head">
+        <h2>🐱 蓝色猫窝</h2>
+        <p>完成「拆解台每日任务」就会获得猫粮。在这里喂养你的蓝色猫咪，看着它一天天长大。</p>
+      </div>
+      <div id="catHome" class="cat-home"></div>
+    </section>
+  </div>
+</div>
+
+<!-- 通用弹窗 -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)app.closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- 设置弹窗 -->
+<div class="modal-bg" id="setBg" onclick="if(event.target===this)app.closeSettings()">
+  <div class="modal">
+    <h3>⚙️ 设置 · AI 接口 <button class="close" onclick="app.closeSettings()">×</button></h3>
+      <div class="note blue">配置后工作台内的 AI 功能将真正联网调用；留空则用本地模板。Key 仅存你浏览器本地，不会外传。</div>
+
+      <h4 style="margin:14px 0 6px;">🤖 大模型（拆解对比 / 漫剧提示词 / 拉片分析 / 脚本 / 锐评）</h4>
+      <div class="field"><label>服务商</label><select id="cfgProvider" onchange="app.fillProvider()">
+        <option value="glm">智谱 GLM-4-Flash（免费）</option>
+        <option value="siliconflow">硅基流动 SiliconFlow（免费额度）</option>
+        <option value="kimi">Kimi / Moonshot（免费额度）</option>
+        <option value="qwen">通义千问 DashScope（免费额度）</option>
+        <option value="deepseek">DeepSeek（极便宜·非免费）</option>
+        <option value="doubao">豆包 / 火山方舟</option>
+        <option value="openrouter">OpenRouter（免费·支持浏览器直连·公网/手机推荐）</option>
+        <option value="custom">自定义</option>
+      </select></div>
+      <div class="note green" style="background:#e8f7ee;color:#1a7f4b">💸 <b>想完全免费？</b> 选上面标「免费」的服务商即可——它们注册后领一个免费 API Key 就能用，不花一分钱：
+        <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank">智谱 GLM-4-Flash(永久免费)</a> ·
+        <a href="https://cloud.siliconflow.cn/account/ak" target="_blank">硅基流动(送额度)</a> ·
+        <a href="https://platform.moonshot.cn/console/api-keys" target="_blank">Kimi(免费额度)</a> ·
+        <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank">通义千问(免费额度)</a> ·
+        <a href="https://openrouter.ai/keys" target="_blank">OpenRouter(免费模型·支持手机/公网直连)</a>。
+        切换服务商会自动填好接口地址与模型，你只需把领到的 Key 粘进下方。<b>在公网/手机上用 AI 功能，建议选 OpenRouter</b>（它允许浏览器直连，无需本地代理）；智谱/硅基/DeepSeek 等需本地代理转发，公网直连可能被跨域拦截。</div>
+      <div class="note" style="margin-top:6px;">🔵 <b>OpenRouter 默认用 <code>openrouter/free</code></b>（官方自动路由器：每次请求从当前可用的免费模型里挑一个，个别模型下线也不会再报错）。若想固定某个强力免费模型，可在「模型名」手动填：<code>google/gemma-4-31b-it:free</code>（262K·中文好）、<code>nvidia/nemotron-3-super-120b-a12b:free</code>、<code>inclusionai/ling-3.0-flash:free</code>（阿里系·中文好）。免费档限额约 20次/分、200次/天，足够日常使用。</div>
+      <div class="field"><label>接口地址（OpenAI 兼容）</label><input id="cfgEndpoint" placeholder="https://api.deepseek.com/v1/chat/completions"></div>
+      <div class="field"><label>API Key</label><input id="cfgKey" type="password" placeholder="sk-..."></div>
+      <div class="field"><label>模型名</label><input id="cfgModel" placeholder="deepseek-chat"></div>
+      <div id="llmStatus" class="note" style="margin-top:6px;"></div>
+      <button class="btn ghost sm" onclick="app.testLLM()">🧪 测试大模型连接</button>
+      <div class="note" style="margin-top:6px;">💡 <b>若你"设了却显示未接入"</b>：配置与数据都绑定在「当前打开的这个网址」下。手机和电脑要用<b>同一个网址</b>打开才能互通；换网址（或换 http/https、换域名）配置不共享。建议把工作台部署到一个固定的公网网址，并在手机/电脑都收藏它。</div>
+
+      <h4 style="margin:18px 0 6px;">🍿 红果爆款榜单（拆解台数据源）</h4>
+      <div class="field"><label>红果榜单 API Key（52api.cn，免费额度）</label><input id="cfgHongguoKey" type="password" placeholder="在 52api.cn 注册领 Key"></div>
+      <div class="field"><label>视频直达链接前缀（按剧集 id 拼接）</label><input id="cfgHongguoPrefix" placeholder="https://www.hongguo.com/play/"></div>
+      <div class="note blue">🍿 填了 Key，拆解台就会拉取<b>红果真实每日/每周榜</b>（带封面图、真实播放链接）。未填则显示示例榜（链接跳红果搜索，保证可达）。申请：<a href="https://www.52api.cn" target="_blank">52api.cn</a> → 控制台领 Key → 在「红果排行榜」接口处复制 Key。免费额度足够日常使用；若提示额度不足可买按量包（约 ¥0.003/次）。</div>
+      <button class="btn ghost sm" onclick="app.refreshFeed(true)">🔄 立即拉取红果榜单</button>
+
+      <h4 style="margin:18px 0 6px;">☁️ 云端同步（手机/电脑互通）</h4>
+      <div class="field" style="display:flex;align-items:center;gap:8px"><label style="margin:0">启用云同步</label><input type="checkbox" id="cfgSyncOn" style="width:auto"></div>
+      <div class="field"><label>GitHub Token（Personal Access Token，需 gist 权限）</label><input id="cfgSyncToken" type="password" placeholder="ghp_..."></div>
+      <div class="field"><label>Gist ID（云端数据仓库 ID）</label><input id="cfgSyncGist" placeholder="如 a1b2c3d4e5f6..."></div>
+      <div class="note blue">📱 用<b>同一个 Token + 同一个 Gist ID</b>在手机和电脑的工作台各填一次并勾选「启用云同步」，两边数据就会自动实时共享。获取步骤：① 注册 GitHub（免费）→ ② 建一个 Token（勾 gist 权限）→ ③ 新建一个空 Gist，复制其 ID。详见我给你的图文步骤。</div>
+      <div class="grid cols2">
+        <button class="btn ghost sm" onclick="app.cloudTest()">🧪 测试连通</button>
+        <button class="btn ghost sm" onclick="app.cloudDownload()">☁️ 从云端拉取</button>
+      </div>
+      <button class="btn sm" onclick="app.cloudUpload()">⬆️ 立即上传到云端</button>
+
+    <div class="field"><label>王俊凯封面图（DIY 换图）</label>
+      <input type="file" id="cfgCover" accept="image/*" onchange="app.setCover(this)">
+      <div id="coverPreview"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="app.clearDemo()">清空示例数据</button>
+      <button class="btn" onclick="app.saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PREFIX="wb_lanchao_";
+const SYNC_KEYS=["config","tasks","gallery","manju","lapian","school","media","cover","seeded"];
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function load(k,d){try{const v=localStorage.getItem(PREFIX+k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function save(k,v){localStorage.setItem(PREFIX+k,JSON.stringify(v));app.refreshSync();CloudSync.schedule(k);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function today(){const d=new Date();return d.toISOString().slice(0,10);}
+function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- 云端同步（GitHub Gist，手机/电脑跨设备共享） ---------- */
+const CloudSync={
+  _t:null,
+  enabled(){const c=load("config",{});return !!(c.syncOn&&c.syncToken&&c.syncGist);},
+  isLocalEmpty(){ return SYNC_KEYS.filter(k=>k!=="config"&&k!=="seeded").every(k=>{const v=localStorage.getItem(PREFIX+k);if(!v)return true;try{const p=JSON.parse(v);return Array.isArray(p)?p.length===0:(p&&Object.keys(p).length===0);}catch(e){return false;}}); },
+  _headers(){const c=load("config",{});return {"Authorization":"Bearer "+c.syncToken,"Content-Type":"application/json","Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};},
+  _url(){const c=load("config",{});return "https://api.github.com/gists/"+c.syncGist;},
+  collect(){const o={};SYNC_KEYS.forEach(k=>{const v=localStorage.getItem(PREFIX+k);if(v!==null)o[k]=v;});return o;},
+  apply(obj){if(!obj)return;Object.keys(obj).forEach(k=>{if(SYNC_KEYS.indexOf(k)>=0)localStorage.setItem(PREFIX+k,obj[k]);});},
+  async upload(){ if(!this.enabled()){app.toast("请先在设置填写 GitHub Token 与 Gist ID 并勾选启用同步");return false;}
+    const payload=this.collect();
+    try{ const r=await fetch(this._url(),{method:"PATCH",headers:this._headers(),body:JSON.stringify({files:{"workbench.json":{content:JSON.stringify(payload)}}})});
+      if(!r.ok){app.toast("☁️ 上传失败 HTTP "+r.status+"（检查 Token 权限）");return false;}
+      app.toast("☁️ 已上传到云端（"+Object.keys(payload).length+" 项数据）");return true;
+    }catch(e){app.toast("☁️ 上传失败："+e.message);return false;}
+  },
+  async download(){ if(!this.enabled()){app.toast("请先填写 GitHub Token 与 Gist ID 并勾选启用同步");return false;}
+    try{ const r=await fetch(this._url(),{headers:this._headers()});
+      if(!r.ok){app.toast("☁️ 下载失败 HTTP "+r.status+"（检查 Token/Gist ID）");return false;}
+      const j=await r.json(); const f=j.files&&j.files["workbench.json"];
+      if(!f||!f.content){app.toast("☁️ 云端暂无数据，保留本机内容");return true;}
+      this.apply(JSON.parse(f.content)); app.toast("☁️ 已从云端拉取并合并"); return true;
+    }catch(e){app.toast("☁️ 下载失败："+e.message);return false;}
+  },
+  async test(){ if(!this.enabled()){app.toast("请先填写 GitHub Token 与 Gist ID 并勾选启用同步");return;}
+    try{ const r=await fetch(this._url(),{headers:this._headers()});
+      if(r.ok)app.toast("✅ 云同步连通成功"); else app.toast("❌ 连通失败 HTTP "+r.status+"（检查 Token/Gist ID）");
+    }catch(e){app.toast("❌ 连通失败："+e.message);}
+  },
+  schedule(k){ if(!this.enabled())return; if(k==="seeded")return;
+    clearTimeout(this._t); this._t=setTimeout(()=>{ this.upload(); }, 1200);
+  }
+};
+
+/* 本地服务探测与统一代理基址（仅在电脑本地运行 Node 代理时有效；公网/手机场景无需，AI 走 OpenRouter 等支持浏览器直连的服务商） */
+let PROXY_DETECTED="";
+async function detectProxy(){
+  if(!location.protocol.startsWith("http"))return;
+  try{const r=await fetch(location.origin+"/health");if(r.ok){const j=await r.json().catch(()=>({}));if(j&&j.ok)PROXY_DETECTED=location.origin;}}catch(e){}
+}
+function proxyBase(){
+  const c=load("config",{});
+  if(c.proxy)return c.proxy.replace(/\/+$/,"");
+  if(c.ttsProxy)return c.ttsProxy.replace(/\/+$/,"");
+  return PROXY_DETECTED;
+}
+const LLM_PROVIDERS={
+  glm:{endpoint:"https://open.bigmodel.cn/api/paas/v4/chat/completions",model:"glm-4-flash",free:true,keyUrl:"https://open.bigmodel.cn/usercenter/apikeys",note:"智谱 GLM-4-Flash：永久免费，注册即领 Key"},
+  siliconflow:{endpoint:"https://api.siliconflow.cn/v1/chat/completions",model:"Qwen/Qwen2.5-7B-Instruct",free:true,keyUrl:"https://cloud.siliconflow.cn/account/ak",note:"硅基流动：注册送额度，部分模型免费"},
+  kimi:{endpoint:"https://api.moonshot.cn/v1/chat/completions",model:"moonshot-v1-8k",free:true,keyUrl:"https://platform.moonshot.cn/console/api-keys",note:"Kimi(Moonshot)：有免费额度"},
+  qwen:{endpoint:"https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",model:"qwen-plus",free:true,keyUrl:"https://dashscope.console.aliyun.com/apiKey",note:"通义千问：有免费额度(qwen-turbo/plus)"},
+  deepseek:{endpoint:"https://api.deepseek.com/v1/chat/completions",model:"deepseek-chat",free:false,keyUrl:"https://platform.deepseek.com/api_keys",note:"DeepSeek：极便宜(约¥1/百万token)，非免费"},
+  doubao:{endpoint:"https://ark.cn-beijing.volces.com/api/v3/chat/completions",model:"<你的Endpoint ID>",free:false,keyUrl:"https://console.volcengine.com/ark",note:"豆包/火山方舟：需创建推理接入点"},
+  openrouter:{endpoint:"https://openrouter.ai/api/v1/chat/completions",model:"openrouter/free",free:true,keyUrl:"https://openrouter.ai/keys",note:"OpenRouter：免费模型+支持浏览器直连，公网/手机电脑都能用，无需本地代理"},
+  custom:{endpoint:"",model:"",free:false,keyUrl:"",note:""}
+};
+
+const app={
+  current:"chaijie",
+  show(sec){
+    this.current=sec;
+    $$(".section").forEach(s=>s.classList.remove("active"));
+    $("#sec-"+sec).classList.add("active");
+    $$(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.sec===sec));
+    const titles={chaijie:"拆解台",tujian:"图鉴台",manju:"漫剧台",lapian:"拉片台",xueyuan:"学院台",chuangzuo:"创作台",cat:"蓝色猫窝"};
+    $("#topTitle").textContent=titles[sec];
+    this.refreshToday();
+    this.render(sec);
+  },
+  render(sec){
+    ({chaijie:this.rChaijie,tujian:this.rTujian,manju:this.rManju,lapian:this.rLapian,xueyuan:this.rXueyuan,chuangzuo:this.rChuangzuo,cat:this.rCat}[sec]).call(this);
+  },
+  refreshSync(){$("#syncText").textContent="本地已保存 · "+new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});},
+  toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(this._tt);this._tt=setTimeout(()=>t.classList.remove("show"),2200);},
+
+  /* ---------- AI 调用 ---------- */
+  async callAI(system,user){
+    const c=load("config",{});
+    if(!c.endpoint||!c.key) return {need:true};
+    const body={model:c.model||"gpt-4o",messages:[{role:"system",content:system},{role:"user",content:user}],temperature:0.8};
+    const base=proxyBase();
+    try{
+      if(base){ // 经本地服务转发，免浏览器 CORS
+        const r=await fetch(base+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:c.endpoint,key:c.key,body})});
+        const j=await r.json();
+        if(j&&j.error) return {err:(typeof j.error==="string"?j.error:JSON.stringify(j.error))};
+        if(j&&j.choices) return {ok:true,text:(j.choices[0].message.content)||"(空)"};
+        return {err:"HTTP "+r.status+"："+JSON.stringify(j).slice(0,150)};
+      }
+      const r=await fetch(c.endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+c.key},body:JSON.stringify(body)});
+      const j=await r.json();
+      if(j&&j.error) return {err:(typeof j.error==="string"?j.error:JSON.stringify(j.error&&j.error.message||j.error))};
+      return {ok:true,text:(j.choices&&j.choices[0].message.content)||"(空)"};
+    }catch(e){return {err:e.message};}
+  },
+
+  /* ---------- 示例数据 ---------- */
+  seed(){
+    if(load("seeded",false))return;
+    save("tasks",[
+      {id:uid(),title:"《闪婚娇妻》第3集 钩子拆解",platform:"红果",url:"https://www.hongguo.com/example1",due:addDays(-1),status:"todo",board:[],ai:""},
+      {id:uid(),title:"抖音 AI 逆袭短剧 前10秒",platform:"抖音",url:"https://www.douyin.com/example2",due:today(),status:"todo",board:[],ai:""},
+      {id:uid(),title:"即梦 AI 漫剧 卡点转场",platform:"即梦",url:"https://www.jimeng.com/example3",due:addDays(1),status:"todo",board:[],ai:""}
+    ]);
+    save("gallery",[
+      {id:uid(),source:"Midjourney",img:"",prompt:"cinematic portrait of a young king, blue royal robe, dramatic lighting, 8k --ar 9:16 --v 6",note:"光影与服装质感参考",tags:"人像,电影感"},
+      {id:uid(),source:"即梦",img:"",prompt:"赛博朋克城市夜景，蓝色主调，霓虹螃蟹雕塑，国潮风，超精细",note:"蓝色调 + 螃蟹元素可借鉴",tags:"场景,国潮"},
+      {id:uid(),source:"豆包",img:"",prompt:"Q版少年歌手舞台，应援蓝荧光棒海，舞台粒子，二次元厚涂",note:"Q版人物设计灵感",tags:"角色,Q版"}
+    ]);
+    save("manju",[]);
+    save("lapian",[
+      {id:uid(),title:"新人 vlog：《打工人的一天》",url:"https://example.com/v1",type:"爆款短视频",note:"节奏松散，前3秒无钩子。",created:today()}
+    ]);
+    save("school",{done:0,videos:[]});
+    save("media",[]);
+    save("seeded",true);
+    this.toast("已载入示例数据，可到设置清空");
+  },
+
+  /* ---------- 今天要处理 ---------- */
+  refreshToday(){
+    const tasks=load("tasks",[]);
+    const t=today();
+    const items=[];
+    tasks.filter(x=>x.status!=="done").forEach(x=>{
+      const over=x.due<t;
+      items.push({over,due:x.due,tag:over?"逾期":(x.due===t?"今天":"待办"),txt:x.title,sec:"chaijie",id:x.id});
+    });
+    const sc=load("school",{});
+    (sc.videos||[]).filter(v=>v.due===t&&!v.watched).forEach(v=>{
+      items.push({over:false,due:v.due,tag:"学习",txt:"📚 "+v.title,sec:"xueyuan",id:null});
+    });
+    const list=$("#todayList");
+    $("#todayCount").textContent=items.length?("("+items.length+")"):"";
+    if(!items.length){list.innerHTML='<div class="today-empty">🎉 今天没有待处理项，去创作吧！</div>';return;}
+    list.innerHTML=items.map((it,i)=>`<div class="today-item ${it.over?'overdue':''}">
+      <span class="tag">${it.tag}</span>
+      <span class="txt">${esc(it.txt)}</span>
+      <button class="do" onclick="app.show('${it.sec}');${it.id?"app.openTask('"+it.id+"')":""}">去处理</button>
+    </div>`).join("");
+  },
+
+  /* ---------- 拆解台（红果爆款推送 + 拉片模板 + 养猫奖励） ---------- */
+  LAPIAN_SKILLS:[
+    {id:"lapian-analysis",name:"导演级视频拉片 Skill（Director Lapian Skill）"},
+    {id:"shot-master",name:"镜头大师 Shot Master"},
+    {id:"douyin-viral",name:"抖音爆款数据分析｜郭亿亿"},
+    {id:"manju-flow",name:"AI 漫剧全流程生成技能"},
+    {id:"hit-preview",name:"短剧爆款预演器"},
+    {id:"lapian",name:"lapian-analysis（拉片分析）"}
+  ],
+  skillOpts(sel){return this.LAPIAN_SKILLS.map(s=>`<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(s.name)}</option>`).join("");},
+  /* 红果热门短剧策展池（真实剧名风格，作为未配 Key 时的兜底，保证永不空榜、链接可达） */
+  HONGGUO_POOL:[
+    {t:"无双之最强赘婿",d:"隐退战神被全家轻视，一次饭局亮出身份，全场跪下。",tags:["战神","赘婿","反转"]},
+    {t:"总裁的隐藏新娘",d:"豪门少夫人伪装平民，被小三当众羞辱，一张结婚证打脸全场。",tags:["霸总","甜宠","打脸"]},
+    {t:"重生后我成了首富",d:"重回十年前，用一条短信买下整条街，仇人跪求合作。",tags:["重生","逆袭","爽剧"]},
+    {t:"离婚后高冷前夫慌了",d:"她递离婚协议转身成集团掌舵人，前夫连夜堵门。",tags:["离婚","逆袭","虐恋"]},
+    {t:"闪婚老公是京圈大佬",d:"为躲逼婚闪婚陌生人，洞房夜他摘下面具露出那张脸。",tags:["闪婚","甜宠","身份"]},
+    {t:"神医下山",d:"村野少年一身医术，救下首富独女，却被当成骗子。",tags:["神医","乡村","打脸"]},
+    {t:"世袭权臣",d:"幼帝登基，权臣摄政，一杯毒酒引出满盘棋局。",tags:["古装","权谋","复仇"]},
+    {t:"千金归来",d:"被抱错的真千金回门，假千金跪求别揭穿。",tags:["重生","豪门","复仇"]},
+    {t:"末世重生之最强女王",d:"丧尸潮前夜，她囤满物资建基地，前世负她的人排队求收留。",tags:["末世","重生","女强"]},
+    {t:"可能是最甜的逆袭",d:"学渣被退学，一夜之间论文刷屏，导师排队抢人。",tags:["校园","逆袭","爽剧"]},
+    {t:"豪门继母不好当",d:"嫁入豪门当后妈，三个熊孩子联手整她，却被她一碗汤收服。",tags:["豪门","家庭","甜宠"]},
+    {t:"我在八零当首富",d:"穿回八零，靠一手卤味摊盘活整条巷子。",tags:["穿越","年代","创业"]},
+    {t:"禁欲大佬的掌心宠",d:"他立誓不近女色，却为她破了所有规矩。",tags:["霸总","甜宠","宠溺"]},
+    {t:"复仇吧大小姐",d:"家破人亡十年后，她带着证据回到那张餐桌。",tags:["复仇","豪门","爽剧"]},
+    {t:"我的老公是反派",d:"穿进小说里嫁给了注定惨死的反派，她决定先救他。",tags:["穿书","甜宠","救赎"]},
+    {t:"风云起时",d:"落魄太子流落民间，一道密旨改写王朝命运。",tags:["古装","权谋","逆袭"]},
+    {t:"闪婚娇妻美又飒",d:"她本是顶尖杀手，隐姓埋名嫁给了最普通的他。",tags:["动作","甜宠","身份"]},
+    {t:"重生之投资大佬",d:"回到牛市前夜，他押上全部身家买下那只妖股。",tags:["重生","商战","爽剧"]},
+    {t:"病娇王爷的团宠妃",d:"她意外入府，冷面王爷把全府变成了她的后盾。",tags:["古装","甜宠","团宠"]},
+    {t:"逆光而来",d:"盲人琴师重见光明那刻，台下坐着十年前救他的他。",tags:["治愈","爱情","反转"]}
+  ],
+  async ensureFeed(){
+    const c=load("config",{});
+    const td=today();
+    if(!c.feedDay||c.feedDay.date!==td) c.feedDay={date:td,items:await this.buildFeed("day")};
+    if(!c.feedWeek||c.feedWeek.date!==td) c.feedWeek={date:td,items:await this.buildFeed("week")};
+    if(!c.dayBoard)c.dayBoard="day";
+    if(!c.todayDone)c.todayDone={date:"",feedId:""};
+    if(!c.cat)c.cat={food:0,fedCount:0,xp:0,level:1,fedToday:""};
+    save("config",c);
+  },
+  async buildFeed(board){
+    const c=load("config",{});
+    let items=null;
+    if(c.hongguoKey) items=await this.fetchHongguo(board,c.hongguoKey,c.hongguoPrefix||"https://www.hongguo.com/play/");
+    if(!items||!items.length) items=this.fallbackFeed(board);
+    return items.slice(0,20).map(x=>({id:uid(),title:x.t,platform:"红果",url:x.url,cover:x.cover||"",desc:x.d,tags:x.tags||[],playNum:x.playNum||"",hongguoId:x.hongguoId||""}));
+  },
+  async fetchHongguo(board,key,prefix){
+    try{
+      const top=await fetch("https://www.52api.cn/api/hg_top?key="+encodeURIComponent(key)+"&type=top").then(r=>r.json());
+      const cells=(top&&top.data&&top.data.lists)||[];
+      const want=board==="week"?"周":"日";
+      const cell=cells.find(x=>(x.name||"").indexOf(want)>=0)||cells[0];
+      if(!cell)return null;
+      const list=await fetch("https://www.52api.cn/api/hg_top?key="+encodeURIComponent(key)+"&type=list&cell_id="+encodeURIComponent(cell.cell_id||cell.id)).then(r=>r.json());
+      const arr=(list&&list.data&&list.data.lists)||[];
+      return arr.map(x=>({t:x.title,d:x.desc||"",tags:(x.sub_title_list||[]).slice(0,3),cover:x.cover||"",url:prefix+(x.id||""),playNum:x.playNum?("播放 "+x.playNum):"",hongguoId:x.id||""}));
+    }catch(e){return null;}
+  },
+  fallbackFeed(board){
+    const pool=this.HONGGUO_POOL;
+    const rot=(board==="week"?7:0)+(new Date().getDate()%pool.length);
+    const out=[];
+    for(let i=0;i<20;i++){const p=pool[(i+rot)%pool.length];out.push({t:p.t,d:p.d,tags:p.tags,cover:"",url:"https://www.hongguo.com/search?keyword="+encodeURIComponent(p.t)});}
+    return out;
+  },
+  switchBoard(b){const c=load("config",{});c.dayBoard=b;save("config",c);$$("#boardTabs .tab").forEach(t=>t.classList.toggle("active",t.textContent.indexOf(b==="week"?"每周":"每日")>=0));this.rChaijie();},
+  async refreshFeed(force){
+    const c=load("config",{});const td=today();const b=c.dayBoard||"day";
+    if(force||!c["feed"+ (b==="week"?"Week":"Day")]||c["feed"+(b==="week"?"Week":"Day")].date!==td){
+      this.toast("正在拉取红果"+(b==="week"?"每周":"每日")+"榜…");
+      const items=await this.buildFeed(b);
+      c["feed"+(b==="week"?"Week":"Day")]={date:td,items};
+      save("config",c);
+    }
+    this.rChaijie();this.toast("已刷新榜单");
+  },
+  rChaijie(){
+    const c=load("config",{});const b=c.dayBoard||"day";
+    const feed=(b==="week"?c.feedWeek:c.feedDay)||{items:[]};
+    const tasks=load("tasks",[]);
+    const doneToday=c.todayDone&&c.todayDone.date===today();
+    const banner=$("#dailyBanner");
+    if(banner)banner.innerHTML=doneToday
+      ? `<div class="big">✅ 今日拆解任务已完成</div><div class="sub">你已挑选 1 个爆款写完拆解，蓝色猫咪已收到猫粮🐱</div><div class="reward">🎁 猫粮 +1 已入库</div>`
+      : `<div class="big">📋 今日任务：从下面 20 个里挑 <b>1</b> 个写拆解</div><div class="sub">写完即算完成，立刻获得喂养蓝色猫咪的猫粮</div><div class="reward">🎯 任选 1 个写完即达标</div>`;
+    const st=$("#feedStatus");
+    if(st)st.innerHTML=c.hongguoKey?'<span style="color:#16a34a">●</span> 已接入红果榜单（真实封面+直达链接）':'<span style="color:#d97706">●</span> 当前为示例榜单：去「设置 → 红果榜单」填 52api.cn 的免费 Key，即可显示真实每日/每周榜与封面图';
+    const box=$("#chaijieList");
+    if(!feed.items||!feed.items.length){box.innerHTML='<div class="empty">榜单为空，点「立即刷新榜单」。</div>';return;}
+    box.className="grid";
+    box.innerHTML=feed.items.map(x=>{
+      const hw=tasks.find(t=>t.feedId===x.id);
+      const done=hw&&hw.status==="done";
+      const cover=x.cover?`<img class="cover" src="${esc(x.cover)}" onclick="app.openTask('${x.id}')" onerror="this.outerHTML='<div class=\\'cover ph\\' onclick=\\'app.openTask(\\'${x.id}\\')\\'>🎬</div>'">`:`<div class="cover ph" onclick="app.openTask('${x.id}')">🎬</div>`;
+      return `<div class="item vcard ${done?'done':''}">
+        ${cover}
+        <div class="body">
+          <h4>${esc(x.title)}</h4>
+          <div class="meta">🔥 红果${x.playNum?(' · '+esc(x.playNum)):''}</div>
+          <div class="tags">${x.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+          <p class="desc">${esc(x.desc)}</p>
+          <div class="acts">
+            <button class="btn sm" onclick="window.open('${esc(x.url)}','_blank')">▶ 看视频</button>
+            <button class="btn sm ${done?'ghost':''}" onclick="app.openTask('${x.id}')">${done?'✓ 看作业':'✍ 写拆解'}</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+  },
+  openTask(feedId){
+    const c=load("config",{});const b=c.dayBoard||"day";
+    const feed=(b==="week"?c.feedWeek:c.feedDay)||{items:[]};
+    const item=feed.items.find(x=>x.id===feedId);if(!item)return;
+    const tasks=load("tasks",[]);let hw=tasks.find(t=>t.feedId===feedId);
+    const skill=hw&&hw.skill?hw.skill:"lapian-analysis";
+    const tmpl=hw&&hw.template?hw.template:null;
+    $("#modal").innerHTML=`<h3>${esc(item.title)} <button class="close" onclick="app.closeModal()">×</button></h3>
+      <div class="note blue">观看：<a href="${esc(item.url)}" target="_blank" class="link">▶ 点此直达红果视频</a>（网页打不开就复制链接到红果 App）</div>
+      <div class="field"><label>🛠 使用的拉片技能（拆解台默认：导演级视频拉片 Skill）</label>
+        <select id="taskSkill">${this.skillOpts(skill)}</select>
+        <div class="note" style="margin-top:4px;">在 WorkBuddy 对话中调用该技能可获得专业拉片支持；本工作台记录你选用的技能。</div>
+      </div>
+      ${this.lapianTemplate(tmpl)}
+      <div class="modal-actions">
+        <button class="btn ghost" onclick="app.saveTask('${feedId}')">💾 保存作业</button>
+        <button class="btn" onclick="app.submitTask('${feedId}')">✅ 提交并完成拆解</button>
+      </div>
+      <div id="aiBox" style="margin-top:14px;">${hw&&hw.ai?('<h4>🤖 AI 拉片分析（对比）</h4>'+hw.ai):''}</div>`;
+    $("#modalBg").classList.add("show");
+    this.bindEmotion();
+  },
+  lapianTemplate(t){
+    const v=(k,def)=> t&&t[k]!=null?t[k]:(def||"");
+    const sec=(title,inner,noneIds)=>`<div class="tmpl-section"><span class="none-btn" onclick="app.tmplNone([${noneIds.map(i=>"'"+i+"'").join(",")}])">整段填「无」</span><h4>${title}</h4>${inner}</div>`;
+    const f=(id,ph,val)=>`<input id="${id}" placeholder="${ph}" value="${esc(v(id))}">`;
+    const s1=`<div class="tmpl-row"><div class="field"><label>片名 / 集数</label>${f("f_title","《无双》第1集")}</div><div class="field"><label>类型标签（≤2个）</label>${f("f_type","赘婿/霸总/重生…")}</div></div>
+      <div class="tmpl-row"><div class="field"><label>时长（精确到秒）</label>${f("f_dur","2分15秒")}</div><div class="field"><label>完播率预估（为什么能看完）</label>${f("f_finish","前3秒强冲突留人")}</div></div>
+      <div class="field"><label>核心钩子（一句话梗概）</label>${f("f_hook","被全家欺负的废婿，其实是隐退的边境之王")}</div>`;
+    const s2=`<div id="emoBox"></div><div class="emotion-chart" id="emoChart"></div>
+      <button class="btn ghost sm" style="margin-top:6px" onclick="app.addEmotionRow()">＋ 加一个时间点（3秒为单位）</button>
+      <div class="note" style="margin-top:4px;">情绪值 -5~+5；触发手段可填「无」。爆款曲线一定是「高低高低高」的波浪形。</div>`;
+    const m=(p,time,role,act)=>`<div class="tmpl-row t2"><div class="field"><label>时间区间</label>${f("m"+p+"_time",time)}</div><div class="field"><label>作用</label>${f("m"+p+"_role",role)}</div></div><div class="field"><label>本片具体手法</label>${f("m"+p+"_act",act)}</div>`;
+    const s3=`<div class="tmpl-row t2"><div class="field"><label>第一幕·破冰(0-5秒) 手法</label>${f("m1_act","身体冲突/金额羞辱/身份碾压")}</div><div class="field"><label>第二幕·压抑铺垫 手法</label>${f("m2_act","让主角被踩到泥里，观众憋屈")}</div></div>
+      <div class="tmpl-row t2"><div class="field"><label>第三幕·反转爆发 手法</label>${f("m3_act","主角亮底牌，反派跪，打脸要快")}</div><div class="field"><label>第四幕·余震与下集钩子 手法</label>${f("m4_act","解决小矛盾+抛更大悬念")}</div></div>`;
+    const s4=`<div class="tmpl-row t2"><div class="field"><label>景别使用规律</label>${f("v_shot","冲突用怼脸特写，环境用全景")}</div><div class="field"><label>镜头运动</label>${f("v_move","反转必用急推")}</div></div>
+      <div class="tmpl-row t2"><div class="field"><label>光线设计</label>${f("v_light","受辱时脸暗/逆光，反转变亮")}</div><div class="field"><label>音效卡点</label>${f("v_sfx","打脸台词后必跟重低音鼓点")}</div></div>
+      <div class="field"><label>对白密度</label>${f("v_dialog","每句≤7字，无长句")}</div>`;
+    const s5=`<div class="tmpl-row t2"><div class="field"><label>开场钩子公式</label>${f("g_hook","羞辱+身份错位")}</div><div class="field"><label>反转触发物</label>${f("g_trigger","一块玉佩/一条短信")}</div></div>
+      <div class="tmpl-row t2"><div class="field"><label>情绪杠杆</label>${f("g_lever","用孩子医药费绑架主角")}</div><div class="field"><label>下集预告话术</label>${f("g_next","你以为这就完了？明天让你知道真正的绝望")}</div></div>`;
+    const emoRows=t&&t.emotion?t.emotion:[];
+    setTimeout(()=>{this.renderEmotion(emoRows);},0);
+    return sec("一、基本信息与数据锚点（定性）",s1,["f_title","f_type","f_dur","f_finish","f_hook"])
+      + sec("二、情绪曲线图（3秒切分，最核心）",s2,[])
+      + sec("三、结构拆解（四幕式强制划分）",s3,["m1_act","m2_act","m3_act","m4_act"])
+      + sec("四、视听语言拆解（编导专业课）",s4,["v_shot","v_move","v_light","v_sfx","v_dialog"])
+      + sec("五、可复用的「公式化套路」（直接拿走用）",s5,["g_hook","g_trigger","g_lever","g_next"]);
+  },
+  renderEmotion(rows){
+    const box=$("#emoBox");if(!box)return;
+    if(!rows||!rows.length)rows=[{time:"0-3秒",scene:"",peak:"",emotion:"-3",trigger:""}];
+    box.innerHTML=rows.map((r,i)=>`<div class="tmpl-row t2" style="align-items:end">
+      <input id="em_time_${i}" placeholder="时间轴" value="${esc(r.time)}">
+      <input id="em_scene_${i}" placeholder="画面内容" value="${esc(r.scene)}">
+      <input id="em_peak_${i}" placeholder="台词/音效高潮点" value="${esc(r.peak)}">
+      <input id="em_emo_${i}" placeholder="情绪值-5~5" value="${esc(r.emotion)}" style="max-width:90px">
+      <input id="em_trig_${i}" placeholder="触发手段(可无)" value="${esc(r.trigger)}">
+      <button class="btn ghost sm" onclick="app.delEmotionRow(${i})">✕</button>
+    </div>`).join("")+'<div class="note" style="margin-top:4px">每行填一个时间点；改完情绪值后下方曲线自动重绘。</div>';
+    this.drawEmotion();
+  },
+  addEmotionRow(){const rows=this.collectEmotion();rows.push({time:"",scene:"",peak:"",emotion:"0",trigger:""});this.renderEmotion(rows);},
+  delEmotionRow(i){const rows=this.collectEmotion();rows.splice(i,1);this.renderEmotion(rows);},
+  collectEmotion(){const box=$("#emoBox");if(!box)return[];const rows=[];box.querySelectorAll('input[id^="em_time_"]').forEach(inp=>{const i=inp.id.split("_").pop();rows.push({time:inp.value,scene:$("#em_scene_"+i).value,peak:$("#em_peak_"+i).value,emotion:$("#em_emo_"+i).value,trigger:$("#em_trig_"+i).value});});return rows;},
+  bindEmotion(){$("#emoBox")&&$("#emoBox").addEventListener("input",()=>this.drawEmotion());},
+  drawEmotion(){
+    const box=$("#emoChart");if(!box)return;
+    const rows=this.collectEmotion();
+    const vals=rows.map(r=>Math.max(-5,Math.min(5,parseFloat(r.emotion)||0)));
+    const W=600,H=120,pad=14;const n=Math.max(vals.length,1);
+    const xs=i=>n===1?W/2:pad+i*(W-2*pad)/(n-1);
+    const ys=v=>H/2-(v/5)*(H/2-pad);
+    let path="";vals.forEach((v,i)=>{path+=(i?"L":"M")+xs(i).toFixed(1)+" "+ys(v).toFixed(1)+" ";});
+    let dots=vals.map((v,i)=>`<circle cx="${xs(i).toFixed(1)}" cy="${ys(v).toFixed(1)}" r="3" fill="#2563eb"/>`).join("");
+    box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:100%">
+      <line x1="${pad}" y1="${H/2}" x2="${W-pad}" y2="${H/2}" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+      <text x="2" y="${ys(5)+4}" font-size="9" fill="#94a3b8">+5</text><text x="2" y="${H/2+3}" font-size="9" fill="#94a3b8">0</text><text x="2" y="${ys(-5)+4}" font-size="9" fill="#94a3b8">-5</text>
+      <path d="${path}" fill="none" stroke="#2563eb" stroke-width="2"/>${dots}</svg>`;
+  },
+  tmplNone(ids){ids.forEach(id=>{const el=$("#"+id);if(el)el.value="无";});this.toast("已将该段填为「无」");},
+  collectTask(feedId){
+    const ids=["f_title","f_type","f_dur","f_finish","f_hook","m1_act","m2_act","m3_act","m4_act","v_shot","v_move","v_light","v_sfx","v_dialog","g_hook","g_trigger","g_lever","g_next"];
+    const t={emotion:this.collectEmotion()};ids.forEach(id=>{const el=$("#"+id);if(el)t[id]=el.value;});
+    return t;
+  },
+  saveTask(feedId){
+    const c=load("config",{});const b=c.dayBoard||"day";
+    const feed=(b==="week"?c.feedWeek:c.feedDay)||{items:[]};
+    const item=feed.items.find(x=>x.id===feedId);if(!item)return;
+    const tasks=load("tasks",[]);let hw=tasks.find(t=>t.feedId===feedId);
+    if(!hw){hw={feedId,title:item.title,platform:"红果",url:item.url};tasks.push(hw);}
+    hw.template=this.collectTask(feedId);hw.skill=$("#taskSkill").value;hw.status=hw.status||"todo";
+    save("tasks",tasks);this.toast("💾 作业已保存");
+  },
+  async submitTask(feedId){
+    this.saveTask(feedId);
+    const tasks=load("tasks",[]);const hw=tasks.find(t=>t.feedId===feedId);if(!hw)return;
+    this.toast("AI 拉片分析中…");
+    const t=hw.template||{};
+    const user="【拉片作业】\n片名："+(t.f_title||"")+"\n钩子："+(t.f_hook||"")+"\n情绪曲线："+JSON.stringify(t.emotion||[])+"\n结构："+(t.m1_act||"")+" / "+(t.m2_act||"")+" / "+(t.m3_act||"")+" / "+(t.m4_act||"")+"\n视听："+(t.v_shot||"")+(t.v_move||"")+(t.v_light||"")+(t.v_sfx||"")+(t.v_dialog||"")+"\n套路："+(t.g_hook||"")+(t.g_trigger||"")+(t.g_lever||"")+(t.g_next||"");
+    const r=await this.callAI("你是资深短剧编剧与拉片导师。针对用户的拉片作业，逐栏点评：结构是否合规、情绪曲线是否波浪形、钩子与反转是否到位、视听语言是否服务情绪，并给出可优化点。用中文、条理清晰。",user);
+    let html;
+    if(r.need)html='<div class="note">未配置 AI 接口，作业已保存。配置后重新提交即可生成专业对比分析。</div>';
+    else if(r.err)html='<div class="note">调用失败：'+esc(r.err)+'</div>';
+    else html='<pre style="white-space:pre-wrap;font-size:13px;line-height:1.7;background:#f6f9ff;border:1px solid var(--line);border-radius:12px;padding:12px;">'+esc(r.text)+'</pre>';
+    hw.ai=html;hw.status="done";hw.doneAt=today();
+    save("tasks",tasks);
+    this.grantDailyReward(feedId);
+    $("#aiBox").innerHTML="<h4>🤖 AI 拉片分析（对比）</h4>"+html;
+    this.rChaijie();this.refreshToday();this.toast("✅ 拆解完成，蓝色猫咪收到猫粮🐱");
+  },
+  grantDailyReward(feedId){
+    const c=load("config",{});const td=today();
+    if(c.todayDone&&c.todayDone.date===td)return;
+    c.todayDone={date:td,feedId};
+    if(!c.cat)c.cat={food:0,fedCount:0,xp:0,level:1,fedToday:""};
+    c.cat.food=(c.cat.food||0)+1;
+    save("config",c);
+  },
+  /* ---------- 蓝色猫窝 ---------- */
+  rCat(){
+    const c=load("config",{});const cat=c.cat||{food:0,fedCount:0,xp:0,level:1,fedToday:""};
+    const fedToday=cat.fedToday===today();
+    const xpPct=Math.min(100,cat.xp||0);
+    const foodPct=Math.min(100,(cat.food||0)*20);
+    const mood=fedToday?"咕噜咕噜~ 今天吃饱啦 😺":"饿扁了，快来喂我 🥺";
+    const box=$("#catHome");
+    box.innerHTML=`<div class="cat-stage">
+      <svg class="cat-svg" viewBox="0 0 120 120">
+        <ellipse cx="60" cy="100" rx="34" ry="10" fill="#bcd4f5" opacity=".5"/>
+        <path d="M30 60 q-6 -22 12 -26 q4 -14 18 -10 q14 -4 18 10 q18 4 12 26 q4 26 -18 34 q-22 8 -26 -18 q-12 -8 -16 -26z" fill="#3b82f6"/>
+        <path d="M34 40 l8 14 l-16 0 z" fill="#3b82f6"/><path d="M86 40 l-8 14 l16 0 z" fill="#3b82f6"/>
+        <circle cx="48" cy="62" r="5" fill="#0b3d91"/><circle cx="72" cy="62" r="5" fill="#0b3d91"/>
+        <circle cx="49.5" cy="60.5" r="1.6" fill="#fff"/><circle cx="73.5" cy="60.5" r="1.6" fill="#fff"/>
+        <path d="M56 74 q4 4 8 0" stroke="#0b3d91" stroke-width="2" fill="none"/>
+        <path d="M44 70 q-3 3 -6 2 M76 70 q3 3 6 2" stroke="#0b3d91" stroke-width="2" fill="none"/>
+        <text x="60" y="112" text-anchor="middle" font-size="12" fill="#1d4ed8" font-weight="bold">蓝色猫咪 Lv.${cat.level||1}</text>
+      </svg>
+      <div class="mood">${mood}</div>
+      <button class="btn" style="margin-top:12px" ${fedToday?'disabled':''} onclick="app.feedCat()">${fedToday?'今天已喂过 🐾':'🍽 喂一颗猫粮'}</button>
+    </div>
+    <div class="cat-stats">
+      <div class="cat-stat"><div class="n">${(cat.food||0)}</div><div class="l">猫粮库存</div></div>
+      <div class="cat-stat"><div class="n">${(cat.fedCount||0)}</div><div class="l">累计喂养</div></div>
+      <div class="cat-stat"><div class="n">Lv.${cat.level||1}</div><div class="l">等级</div></div>
+    </div>
+    <div class="cat-stat" style="text-align:left"><div class="l">猫粮库存</div><div class="food-bar"><i style="width:${foodPct}%"></i></div></div>
+    <div class="cat-stat" style="text-align:left"><div class="l">成长值（满 100 升一级）</div><div class="xp-bar"><i style="width:${xpPct}%"></i></div></div>`;
+  },
+  feedCat(){
+    const c=load("config",{});const cat=c.cat||{food:0,fedCount:0,xp:0,level:1,fedToday:""};
+    if(cat.fedToday===today()){this.toast("今天已经喂过啦~");return;}
+    if((cat.food||0)<=0){this.toast("没有猫粮了，去拆解台完成任务赚猫粮吧！");return;}
+    cat.food-=1;cat.fedCount=(cat.fedCount||0)+1;cat.xp=(cat.xp||0)+20;cat.fedToday=today();
+    if(cat.xp>=100){cat.xp-=100;cat.level=(cat.level||1)+1;this.toast("🎉 蓝色猫咪升到 Lv."+cat.level+"！");}
+    else this.toast("😺 蓝色猫咪吃得很开心");
+    c.cat=cat;save("config",c);this.rCat();
+  },
+
+  /* ---------- 图鉴台 ---------- */
+  rTujian(){
+    const list=load("gallery",[]);
+    const box=$("#tujianList");
+    if(!list.length){box.innerHTML='<div class="empty">还没有收藏，点「添加一张」。</div>';return;}
+    box.innerHTML=list.map(x=>`<div class="item gcard">
+      ${x.img?`<img src="${x.img}" alt="">`:`<div class="cover-empty" style="height:170px;font-size:13px" onclick="app.upImg('${x.id}')">＋ 上传图片</div>`}
+      <div class="row" style="margin-top:8px;"><h4>${esc(x.source)}</h4><span class="pill">${esc(x.tags||'')}</span></div>
+      <div class="prompt">${esc(x.prompt)}</div>
+      <p>${esc(x.note||'')}</p>
+      <div class="acts">
+        <button class="btn sm ghost" onclick="navigator.clipboard.writeText(\`${x.prompt.replace(/`/g,'')}\`);app.toast('提示词已复制')">复制提示词</button>
+        <button class="btn sm ghost" onclick="app.upImg('${x.id}')">换图</button>
+        <button class="btn sm ghost" onclick="app.del('gallery','${x.id}','rTujian')">删除</button>
+      </div>
+    </div>`).join("");
+  },
+  addTujian(){
+    const arr=load("gallery",[]);
+    arr.unshift({id:uid(),source:"新平台",img:"",prompt:"",note:"",tags:""});
+    save("gallery",arr);this.rTujian();this.toast("已添加，点击卡片编辑");
+    // 简单内联编辑
+    setTimeout(()=>{
+      const first=$("#tujianList .item");
+      if(first){first.style.outline="2px solid var(--blue)";}
+    },50);
+  },
+  upImg(id){
+    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+    inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();
+      r.onload=()=>{const arr=load("gallery",[]);const x=arr.find(g=>g.id===id);if(x){x.img=r.result;save("gallery",arr);this.rTujian();}};
+      r.readAsDataURL(f);};
+    inp.click();
+  },
+
+  /* ---------- 漫剧台 ---------- */
+  rManju(){
+    const list=load("manju",[]);
+    const box=$("#manjuList");
+    if(!list.length){box.innerHTML='<div class="empty">还没有问答，点「新问答」开始生成。</div>';return;}
+    box.innerHTML=list.map(x=>`<div class="item">
+      <div class="row"><h4>【${esc(x.type)}】${esc(x.q)}</h4><span class="pill">${esc(x.created)}</span></div>
+      <div class="prompt" style="font-family:inherit;background:#f6f9ff">${esc(x.a)}</div>
+      <div class="acts"><button class="btn sm ghost" onclick="app.del('manju','${x.id}','rManju')">删除</button></div>
+    </div>`).join("");
+  },
+  addManju(){
+    const types=["剧本","角色设计提示词","资产设计提示词","场景提示词","首帧提示词","尾帧提示词","视频提示词"];
+    $("#modal").innerHTML=`<h3>🎬 新漫剧问答 <button class="close" onclick="app.closeModal()">×</button></h3>
+      <div class="field"><label>产出类型</label><select id="mjType">${types.map(t=>'<option>'+t+'</option>').join("")}</select></div>
+      <div class="field"><label>你的需求</label><textarea id="mjQ" placeholder="如：古风甜宠漫剧，女主是医女，需要角色设计提示词"></textarea></div>
+      <div class="modal-actions"><button class="btn" onclick="app.genManju()">生成</button></div>
+      <div id="mjOut" style="margin-top:12px;"></div>`;
+    $("#modalBg").classList.add("show");
+  },
+  async genManju(){
+    const type=$("#mjType").value,q=$("#mjQ").value.trim();
+    if(!q){this.toast("请填写需求");return;}
+    this.toast("生成中…");
+    const sys="你是 AI 漫剧全流程专家，擅长生成剧本、角色/资产/场景/首尾帧/视频提示词。按用户选择的产出类型，给出专业、可落地的结构化内容，中文。";
+    const r=await this.callAI(sys,"类型："+type+"\n需求："+q);
+    let a;
+    if(r.need){
+      a=`【${type} · 模板】\n需求：${q}\n\n（未配置 AI 接口，以下为结构占位，配置后可生成真实内容）\n`+
+        (type==="剧本"?"· 一句话梗概\n· 三幕结构\n· 分集大纲\n· 关键人物动机":"· 主体描述\n· 风格/光线/构图\n· 负面词\n· 比例与参数");
+    }else if(r.err){a="调用失败："+r.err;}
+    else a=r.text;
+    const arr=load("manju",[]);arr.unshift({id:uid(),type,q,a,created:today()});save("manju",arr);
+    $("#mjOut").innerHTML='<div class="prompt" style="font-family:inherit;background:#f6f9ff;white-space:pre-wrap">'+esc(a)+'</div>';
+    this.rManju();
+  },
+
+  /* ---------- 拉片台 ---------- */
+  rLapian(){
+    const c=load("config",{});
+    const sel=$("#lapianSkillSel");if(sel)sel.innerHTML=this.skillOpts(c.lapianSkill||"lapian-analysis");
+    const list=load("lapian",[]);
+    const box=$("#lapianList");
+    if(!list.length){box.innerHTML='<div class="empty">还没有视频，点「添加视频」。</div>';return;}
+    box.innerHTML=list.map(x=>`<div class="item">
+      <div class="row"><h4>${esc(x.title)}</h4><span class="pill">${esc(x.type)}</span></div>
+      <p class="link">🔗 ${esc(x.url)}</p>
+      <p>${esc(x.note||'')}</p>
+      <div class="acts"><button class="btn sm" onclick="app.openLapian('${x.id}')">拉片分析</button><button class="btn sm ghost" onclick="app.del('lapian','${x.id}','rLapian')">删除</button></div>
+    </div>`).join("");
+  },
+  addLapian(){
+    const c=load("config",{});
+    $("#modal").innerHTML=`<h3>🔍 添加视频 <button class="close" onclick="app.closeModal()">×</button></h3>
+      <div class="field"><label>🛠 使用技能</label><select id="lpSkill">${this.skillOpts(c.lapianSkill||"lapian-analysis")}</select></div>
+      <div class="field"><label>标题</label><input id="lpTitle" placeholder="如：某爆款变装视频"></div>
+      <div class="field"><label>视频链接</label><input id="lpUrl" placeholder="https://…"></div>
+      <div class="field"><label>类型</label><select id="lpType"><option>爆款短视频</option><option>AI短剧</option><option>真人短剧</option><option>网剧</option><option>电视剧</option><option>电影</option></select></div>
+      <div class="modal-actions"><button class="btn" onclick="app.saveLapian()">添加</button></div>`;
+    $("#modalBg").classList.add("show");
+  },
+  saveLapian(){
+    const title=$("#lpTitle").value.trim();const url=$("#lpUrl").value.trim();
+    if(!title||!url){this.toast("请填标题和链接");return;}
+    const c=load("config",{});c.lapianSkill=$("#lpSkill").value;save("config",c);
+    const arr=load("lapian",[]);arr.unshift({id:uid(),title,url,type:$("#lpType").value,note:"",analysis:"",skill:c.lapianSkill,created:today()});
+    save("lapian",arr);this.closeModal();this.rLapian();this.toast("已添加");
+  },
+  setLapianSkill(){const c=load("config",{});const sel=$("#lapianSkillSel");if(sel){c.lapianSkill=sel.value;save("config",c);this.toast("已选用技能："+this.LAPIAN_SKILLS.find(s=>s.id===sel.value).name);}},
+  openLapian(id){
+    const arr=load("lapian",[]);const x=arr.find(t=>t.id===id);if(!x)return;
+    $("#modal").innerHTML=`<h3>${esc(x.title)} <button class="close" onclick="app.closeModal()">×</button></h3>
+      <div class="note blue">观看：<a href="${esc(x.url)}" target="_blank" class="link">${esc(x.url)}</a></div>
+      <div class="field"><label>拉片笔记（镜头/视听语言/剪辑节奏/情绪曲线）</label>
+        <textarea id="lpNote" placeholder="逐镜记录…">${esc(x.note||'')}</textarea></div>
+      <div class="field"><label>AI 综合拉片分析</label>
+        <div id="lpAi" style="font-size:13px;white-space:pre-wrap;background:#f6f9ff;border:1px solid var(--line);border-radius:12px;padding:12px;">${esc(x.analysis||'（点下方按钮，由 AI 生成结构化拉片报告）')}</div></div>
+      <div class="modal-actions">
+        <button class="btn ghost" onclick="app.saveLapianNote('${id}')">保存笔记</button>
+        <button class="btn" onclick="app.lapianAI('${id}')">🤖 AI 拉片分析</button>
+      </div>`;
+    $("#modalBg").classList.add("show");
+  },
+  saveLapianNote(id){
+    const arr=load("lapian",[]);const x=arr.find(t=>t.id===id);if(!x)return;
+    x.note=$("#lpNote").value;save("lapian",arr);this.rLapian();this.toast("已保存笔记");
+  },
+  async lapianAI(id){
+    const arr=load("lapian",[]);const x=arr.find(t=>t.id===id);if(!x)return;
+    this.toast("AI 拉片中…");
+    const r=await this.callAI("你是专业拉片分析师，对给定视频类型与笔记，输出：叙事结构、视听语言、剪辑节奏、情绪曲线、亮点与可借鉴点。中文条理清晰。","类型："+x.type+"\n笔记："+(x.note||"（无笔记）"));
+    let out;
+    if(r.need)out="未配置 AI 接口。建议从以下维度自行拉片：\n1. 叙事结构（起承转合/三幕）\n2. 镜头语言（景别、运动、构图）\n3. 剪辑节奏（镜头时长、转场、卡点）\n4. 声音设计（BGM、音效、留白）\n5. 情绪曲线（何时起情绪、何时反转）";
+    else if(r.err)out="调用失败："+r.err;else out=r.text;
+    x.analysis=out;save("lapian",arr);
+    $("#lpAi").textContent=out;this.toast("分析完成");
+  },
+
+  /* ---------- 学院台 ---------- */
+  rXueyuan(){
+    const cats=[{k:"剧本",i:"📝"},{k:"分镜脚本",i:"🎞️"},{k:"摄影审美",i:"📷"},{k:"剪辑与节奏",i:"✂️"}];
+    const sc=load("school",{});const videos=sc.videos||[];
+    const box=$("#schoolList");
+    box.innerHTML=cats.map(c=>{
+      const v=videos.filter(x=>x.cat===c.k);
+      const done=v.filter(x=>x.watched).length;
+      return `<div class="card">
+        <div class="row"><h4>${c.i} ${c.k}</h4><span class="pill">${done}/${v.length||0}</span></div>
+        ${v.length?`<div class="grid" style="gap:8px;">`+v.map(x=>`<div class="item" style="padding:10px;">
+          <div class="row"><h4 style="font-size:13px">${esc(x.title)}</h4>${x.watched?'<span class="pill green">已学</span>':'<span class="pill gray">待学</span>'}</div>
+          ${x.img?`<img src="${x.img}" style="width:100%;height:90px;object-fit:cover;border-radius:8px">`:'<div class="cover-empty" style="height:90px;font-size:12px">预览图</div>'}
+          <p style="font-size:12px">${esc(x.desc||'')}</p>
+          <div class="acts"><button class="btn sm ${x.watched?'ghost':''}" onclick="app.watchSchool('${x.id}')">${x.watched?'重看':'标记已学'}</button></div>
+        </div>`).join(""):'<div class="empty" style="padding:14px">暂无推荐，点「刷新今日推荐」</div>'}
+      </div>`;
+    }).join("");
+    // 进度
+    const total=videos.length||1;const done=videos.filter(x=>x.watched).length;
+    const pct=Math.round(done/total*100);
+    $("#schoolPct").textContent=pct+"%";$("#schoolBar").style.width=pct+"%";
+    $("#schoolDone").textContent=done;
+    const stage=pct>=80?"繁茂期":pct>=50?"成长期":pct>=20?"发芽期":"播种期";
+    $("#schoolStage").textContent=stage;
+    this.drawTree(pct);
+  },
+  drawTree(pct){
+    const lvl=Math.min(5,Math.floor(pct/20)+1);
+    let leaves="";
+    for(let i=0;i<lvl*3;i++){leaves+=`<circle cx="${50+Math.cos(i*1.3)*22}" cy="${45-Math.sin(i*1.3)*20}" r="4" fill="#5b9bff"/>`;}
+    $("#treeWrap").innerHTML=`<svg class="tree" width="120" height="120" viewBox="0 0 100 100">
+      <rect x="47" y="55" width="6" height="35" fill="#8a5a2b"/>
+      <circle cx="50" cy="45" r="${18+lvl*3}" fill="#2d6cdf" opacity=".85"/>
+      ${leaves}
+      ${Array.from({length:lvl}).map((_,i)=>`<circle cx="${30+i*10}" cy="${70+i*4}" r="3" fill="#e23c3c"/>`).join("")}
+    </svg>`;
+  },
+  pushSchool(){
+    const pool=[
+      {cat:"剧本",title:"3分钟学会「英雄之旅」剧本结构",desc:"从零理解人物动机与转折",img:""},
+      {cat:"剧本",title:"如何用一句话梗概卖爆你的故事",desc:"logline 写法",img:""},
+      {cat:"分镜脚本",title:"新手分镜表怎么画才不懵",desc:"景别/机位/时长标注",img:""},
+      {cat:"分镜脚本",title:"卡点短视频分镜拆解",desc:"前3秒钩子设计",img:""},
+      {cat:"摄影审美",title:"电影感构图的 5 个秘密",desc:"三分法/引导线/留白",img:""},
+      {cat:"摄影审美",title:"蓝色调怎么调出高级感",desc:"适合应援蓝风格",img:""},
+      {cat:"剪辑与节奏",title:"剪辑节奏：镜头时长决定情绪",desc:"J-cut / L-cut",img:""},
+      {cat:"剪辑与节奏",title:"BGM 卡点进阶练习",desc:"情绪曲线匹配",img:""}
+    ];
+    // 按阶段：已学越多，推更进阶的（这里简单按序号取中后段）
+    const sc=load("school",{});const done=(sc.videos||[]).filter(v=>v.watched).length;
+    const start=Math.min(pool.length-4, done);
+    const pick=pool.slice(start,start+4);
+    const videos=(sc.videos||[]).concat(pick.map(p=>({id:uid(),...p,due:today(),watched:false})));
+    sc.videos=videos;save("school",sc);
+    this.rXueyuan();this.refreshToday();this.toast("已更新今日推荐（"+pick.length+" 条）");
+  },
+  watchSchool(id){
+    const sc=load("school",{});const x=(sc.videos||[]).find(v=>v.id===id);if(x)x.watched=!x.watched;save("school",sc);this.rXueyuan();this.refreshToday();
+  },
+
+  /* ---------- 创作台 ---------- */
+  rChuangzuo(){
+    const list=load("media",[]);
+    const box=$("#mediaList");
+    if(!list.length){box.innerHTML='<div class="empty">还没有生成记录</div>';return;}
+    box.innerHTML=list.map(x=>`<div class="item">
+      <div class="row"><h4>${x.type==='script'?'📝 脚本':'🔥 锐评'} · ${esc(x.title)}</h4><span class="pill gray">${esc(x.created)}</span></div>
+      <div class="prompt" style="font-family:inherit;background:#f6f9ff;white-space:pre-wrap;font-size:12.5px">${esc(x.content)}</div>
+    </div>`).join("");
+  },
+  async genScript(){
+    const topic=$("#scriptTopic").value.trim();if(!topic){this.toast("请填主题");return;}
+    this.toast("生成中…");
+    const plat=$("#scriptPlat").value,len=$("#scriptLen").value;
+    const r=await this.callAI("你是短视频爆款脚本专家。按平台与时长，给出：钩子、分镜脚本（画面/台词/时长）、BGM建议、互动引导。中文，可直接拍。","平台："+plat+" 时长："+len+" 主题："+topic);
+    let out;
+    if(r.need)out="【"+plat+" · "+len+" · "+topic+"】\n\n前3秒钩子：（强冲突/悬念）\n\n分镜：\n1. 0-3s 画面： 台词：\n2. 3-10s 画面： 台词：\n3. 结尾 画面： 台词：CTA关注\n\nBGM：\n互动：评论区引导\n\n（配置 AI 接口后生成真实脚本）";
+    else if(r.err)out="调用失败："+r.err;else out=r.text;
+    $("#scriptOut").innerHTML='<div class="prompt" style="font-family:inherit;background:#f6f9ff;white-space:pre-wrap">'+esc(out)+'</div>';
+    const arr=load("media",[]);arr.unshift({id:uid(),type:"script",title:topic,content:out,created:today()});save("media",arr);this.rChuangzuo();
+  },
+  async genCritique(){
+    const url=$("#critiqueUrl").value.trim();if(!url){this.toast("请填视频链接");return;}
+    this.toast("分析中…");
+    const desc=$("#critiqueDesc").value.trim();
+    const r=await this.callAI("你是短视频数据诊断专家。根据视频链接与描述，分析为什么不火：完播率/钩子/内容价值/人设/封面标题/发布时间等，并给可落地优化建议。中文。","视频："+url+"\n描述："+(desc||"（无）"));
+    let out;
+    if(r.need)out="【诊断模板】\n可能不火的原因：\n1. 前3秒无钩子，完播率低\n2. 封面/标题不够吸睛\n3. 内容价值感弱，缺记忆点\n4. 发布时间/标签不匹配受众\n\n建议：\n· 重做开头，3秒抛冲突\n· 统一人设与视觉风格\n· 增加互动钩子\n（配置 AI 接口后给出真实诊断）";
+    else if(r.err)out="调用失败："+r.err;else out=r.text;
+    $("#critiqueOut").innerHTML='<div class="prompt" style="font-family:inherit;background:#f6f9ff;white-space:pre-wrap">'+esc(out)+'</div>';
+    const arr=load("media",[]);arr.unshift({id:uid(),type:"critique",title:url.slice(0,30),content:out,created:today()});save("media",arr);this.rChuangzuo();
+  },
+
+  /* ---------- 通用 ---------- */
+  del(store,id,fn){
+    const arr=load(store,[]);save(store,arr.filter(x=>x.id!==id));this[fn]();this.refreshToday();
+  },
+  openSettings(){
+    const c=load("config",{});
+    const prov=c.llmProvider||"glm";
+    $("#cfgProvider").value=prov;
+    $("#cfgEndpoint").value=c.endpoint||LLM_PROVIDERS[prov].endpoint;
+    $("#cfgKey").value=c.key||"";
+    let m=c.model;
+    if(prov==="openrouter"&&m==="meta-llama/llama-3.1-8b-instruct:free") m="";
+    $("#cfgModel").value=m||LLM_PROVIDERS[prov].model;
+    $("#cfgSyncOn").checked=!!c.syncOn;
+    $("#cfgSyncToken").value=c.syncToken||"";
+    $("#cfgSyncGist").value=c.syncGist||"";
+    $("#cfgHongguoKey").value=c.hongguoKey||"";
+    $("#cfgHongguoPrefix").value=c.hongguoPrefix||"https://www.hongguo.com/play/";
+    const cover=load("cover","");
+    $("#coverPreview").innerHTML=cover?`<img src="${cover}" class="cover" style="height:90px;margin-top:8px">`:'<div class="cover-empty" style="height:90px;margin-top:8px;font-size:12px">未设置封面</div>';
+    this.renderLLMStatus();
+    $("#setBg").classList.add("show");
+  },
+  closeSettings(){ $("#setBg").classList.remove("show"); },
+  fillProvider(){const p=LLM_PROVIDERS[$("#cfgProvider").value];if(p){$("#cfgEndpoint").value=p.endpoint;$("#cfgModel").value=p.model;}},
+  renderLLMStatus(){
+    const c=load("config",{});const box=$("#llmStatus");if(!box)return;
+    if(c.endpoint&&c.key){
+      const masked=c.key.length>8?c.key.slice(0,4)+"****"+c.key.slice(-4):"****";
+      box.style.background="#e8f7ee";box.style.color="#1a7f4b";
+      box.innerHTML=`✅ <b>已接入</b>（当前网址）：${esc(c.model||"默认模型")} @ ${esc(c.endpoint)}　<span style="opacity:.7">Key ${masked}</span>`;
+    }else{
+      box.style.background="#fdecec";box.style.color="#c0392b";
+      box.innerHTML=`❌ <b>未接入</b>（当前网址）：请填接口地址 + API Key 后点「保存」。`;
+    }
+  },
+  async testLLM(){
+    const endpoint=$("#cfgEndpoint").value.trim(),key=$("#cfgKey").value.trim(),model=$("#cfgModel").value.trim();
+    if(!endpoint||!key){this.toast("请先填写接口地址与 API Key");return;}
+    this.toast("正在测试大模型连接…");
+    const body={model:model||"gpt-4o",messages:[{role:"user",content:"只回复：连接成功"}],max_tokens:20};
+    const base=proxyBase();
+    try{
+      let j,status;
+      if(base){
+        const r=await fetch(base+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint,key,body})});
+        status=r.status;j=await r.json().catch(()=>({}));
+      }else{
+        const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify(body)});
+        status=r.status;j=await r.json().catch(()=>({}));
+      }
+      if(j&&j.error){this.toast("❌ "+(typeof j.error==="string"?j.error:JSON.stringify(j.error)).slice(0,140));return;}
+      if(status>=400){this.toast("❌ HTTP "+status+"（检查 Key/模型名/余额）");return;}
+      const txt=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||"（已连通，返回为空）";
+      this.toast("✅ 连接成功："+String(txt).slice(0,50));
+    }catch(e){this.toast("❌ 连接失败："+e.message);}
+  },
+  saveSettings(){
+    const c=load("config",{});
+    c.llmProvider=$("#cfgProvider").value;
+    c.endpoint=$("#cfgEndpoint").value.trim();c.key=$("#cfgKey").value.trim();c.model=$("#cfgModel").value.trim();
+    c.syncOn=$("#cfgSyncOn").checked;
+    c.syncToken=$("#cfgSyncToken").value.trim();
+    c.syncGist=$("#cfgSyncGist").value.trim();
+    c.hongguoKey=$("#cfgHongguoKey").value.trim();
+    c.hongguoPrefix=$("#cfgHongguoPrefix").value.trim()||"https://www.hongguo.com/play/";
+    save("config",c);this.closeSettings();this.toast("设置已保存");
+    if(c.syncOn&&c.syncToken&&c.syncGist){ CloudSync.upload(); }
+  },
+  cloudTest(){ CloudSync.test(); },
+  cloudUpload(){ CloudSync.upload(); },
+  cloudDownload(){ CloudSync.download().then(()=>{ this.seed(); this.show(this.current); }); },
+  setCover(inp){
+    const f=inp.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{save("cover",r.result);const cv=$("#coverPreview");if(cv)cv.innerHTML=`<img src="${r.result}" class="cover" style="height:90px;margin-top:8px">`;this.toast("封面已更新");};
+    r.readAsDataURL(f);
+  },
+  clearDemo(){
+    ["tasks","gallery","manju","lapian","school","media"].forEach(k=>localStorage.removeItem(PREFIX+k));
+    save("seeded",false);this.closeSettings();this.seed();this.show(this.current);this.toast("已清空示例并重置");
+  },
+  exportJSON(){
+    const data={};["tasks","gallery","manju","voice","subtitle","lapian","school","media","config","cover"].forEach(k=>data[k]=load(k,null));
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="蓝潮创作台备份_"+today()+".json";a.click();
+    this.toast("已导出备份 JSON");
+  },
+  importJSON(){
+    const inp=document.createElement("input");inp.type="file";inp.accept="application/json";
+    inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();
+      r.onload=()=>{try{const d=JSON.parse(r.result);Object.keys(d).forEach(k=>{if(d[k]!==null)save(k,d[k]);});this.show(this.current);this.toast("恢复成功");}catch(e){this.toast("文件格式错误");}};
+      r.readAsText(f);};
+    inp.click();
+  },
+  closeModal(){ $("#modalBg").classList.remove("show"); }
+};
+
+/* 启动 */
+(async function(){ if(CloudSync.enabled() && CloudSync.isLocalEmpty()){ await CloudSync.download(); } app.seed(); await app.ensureFeed(); app.show("chaijie"); detectProxy(); })();
+</script>
+</body>
+</html>
