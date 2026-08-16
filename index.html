@@ -372,9 +372,9 @@
       <div class="note" style="margin-top:6px;">💡 <b>若你"设了却显示未接入"</b>：配置与数据都绑定在「当前打开的这个网址」下。手机和电脑要用<b>同一个网址</b>打开才能互通；换网址（或换 http/https、换域名）配置不共享。建议把工作台部署到一个固定的公网网址，并在手机/电脑都收藏它。</div>
 
       <h4 style="margin:18px 0 6px;">🍿 红果爆款榜单（拆解台数据源）</h4>
-      <div class="field"><label>红果榜单 API Key（52api.cn，免费额度）</label><input id="cfgHongguoKey" type="password" placeholder="在 52api.cn 注册领 Key"></div>
+      <div class="field"><label>红果榜单 API Key（52api.cn，需充值有余额）</label><input id="cfgHongguoKey" type="password" placeholder="在 52api.cn 注册领 Key"></div>
       <div class="field"><label>视频直达链接前缀（按剧集 id 拼接）</label><input id="cfgHongguoPrefix" placeholder="https://www.hongguo.com/play/"></div>
-      <div class="note blue">🍿 填了 Key，拆解台就会拉取<b>红果真实每日/每周榜</b>（带封面图、真实播放链接）。未填则显示示例榜（链接跳红果搜索，保证可达）。申请：<a href="https://www.52api.cn" target="_blank">52api.cn</a> → 控制台领 Key → 在「红果排行榜」接口处复制 Key。免费额度足够日常使用；若提示额度不足可买按量包（约 ¥0.003/次）。</div>
+      <div class="note blue">🍿 填了 Key，拆解台就会拉取<b>红果真实每日/每周榜</b>（带封面图、真实播放链接）。未填则显示示例榜（链接跳红果搜索，保证可达）。申请：<a href="https://www.52api.cn" target="_blank">52api.cn</a> → 控制台领 Key → 在「<b>红果排行榜</b>」接口（doc/114）处<b>开通并充值</b>。<br>⚠️ 该接口<b>没有「每日免费额度」</b>，仅新账户赠 10 次终身免费调用，用完需按量计费（约 0.01 元/次，买次数包低至 ¥0.003/次）。充值 ¥10 约可用 1 年（每天约 3 次调用）。若拆解台显示「接口异常/额度用完」，就是账户余额不足，去充值即可恢复真实榜单。</div>
       <button class="btn ghost sm" onclick="app.refreshFeed(true)">🔄 立即拉取红果榜单</button>
 
       <h4 style="margin:18px 0 6px;">☁️ 云端同步（手机/电脑互通）</h4>
@@ -601,21 +601,34 @@ const app={
   async buildFeed(board){
     const c=load("config",{});
     let items=null;
-    if(c.hongguoKey) items=await this.fetchHongguo(board,c.hongguoKey,c.hongguoPrefix||"https://www.hongguo.com/play/");
+    if(c.hongguoKey){
+      try{ items=await this.fetchHongguo(board,c.hongguoKey,c.hongguoPrefix||"https://www.hongguo.com/play/"); }
+      catch(e){ c.hongguoErr=String((e&&e.message)||e); save("config",c); items=null; }
+    }
     if(!items||!items.length) items=this.fallbackFeed(board);
     return items.slice(0,20).map(x=>({id:uid(),title:x.t,platform:"红果",url:x.url,cover:x.cover||"",desc:x.d,tags:x.tags||[],playNum:x.playNum||"",hongguoId:x.hongguoId||""}));
   },
   async fetchHongguo(board,key,prefix){
-    try{
+    const c=load("config",{});
+    let cells;
+    if(c.hgTopCache&&c.hgTopCache.date===today()&&c.hgTopCache.cells&&c.hgTopCache.cells.length){
+      cells=c.hgTopCache.cells;
+    }else{
       const top=await fetch("https://www.52api.cn/api/hg_top?key="+encodeURIComponent(key)+"&type=top").then(r=>r.json());
-      const cells=(top&&top.data&&top.data.lists)||[];
-      const want=board==="week"?"周":"日";
-      const cell=cells.find(x=>(x.name||"").indexOf(want)>=0)||cells[0];
-      if(!cell)return null;
-      const list=await fetch("https://www.52api.cn/api/hg_top?key="+encodeURIComponent(key)+"&type=list&cell_id="+encodeURIComponent(cell.cell_id||cell.id)).then(r=>r.json());
-      const arr=(list&&list.data&&list.data.lists)||[];
-      return arr.map(x=>({t:x.title,d:x.desc||"",tags:(x.sub_title_list||[]).slice(0,3),cover:x.cover||"",url:prefix+(x.id||""),playNum:x.playNum?("播放 "+x.playNum):"",hongguoId:x.id||""}));
-    }catch(e){return null;}
+      if(top&&top.code&&[401,403,400,429,500].includes(top.code)) throw new Error((top.msg||"调用失败")+"（code "+top.code+"）");
+      cells=(top&&top.data&&top.data.lists)||[];
+      if(!cells.length) throw new Error("未返回榜单列表（可能接口未开通或额度已用完）");
+      c.hgTopCache={date:today(),cells};save("config",c);
+    }
+    const want=board==="week"?"周":"日";
+    const cell=cells.find(x=>(x.name||"").indexOf(want)>=0)||cells[0];
+    if(!cell)throw new Error("未找到"+(board==="week"?"每周":"每日")+"榜单");
+    const list=await fetch("https://www.52api.cn/api/hg_top?key="+encodeURIComponent(key)+"&type=list&cell_id="+encodeURIComponent(cell.cell_id||cell.id)).then(r=>r.json());
+    if(list&&list.code&&[401,403,400,429,500].includes(list.code)) throw new Error((list.msg||"调用失败")+"（code "+list.code+"）");
+    const arr=(list&&list.data&&list.data.lists)||[];
+    if(!arr.length)throw new Error("榜单列表为空（可能额度已用完）");
+    c.hongguoErr="";save("config",c);
+    return arr.map(x=>({t:x.title,d:x.desc||"",tags:(x.sub_title_list||[]).slice(0,3),cover:x.cover||"",url:prefix+(x.id||""),playNum:x.playNum?("播放 "+x.playNum):"",hongguoId:x.id||""}));
   },
   fallbackFeed(board){
     const pool=this.HONGGUO_POOL;
@@ -645,7 +658,11 @@ const app={
       ? `<div class="big">✅ 今日拆解任务已完成</div><div class="sub">你已挑选 1 个爆款写完拆解，蓝色猫咪已收到猫粮🐱</div><div class="reward">🎁 猫粮 +1 已入库</div>`
       : `<div class="big">📋 今日任务：从下面 20 个里挑 <b>1</b> 个写拆解</div><div class="sub">写完即算完成，立刻获得喂养蓝色猫咪的猫粮</div><div class="reward">🎯 任选 1 个写完即达标</div>`;
     const st=$("#feedStatus");
-    if(st)st.innerHTML=c.hongguoKey?'<span style="color:#16a34a">●</span> 已接入红果榜单（真实封面+直达链接）':'<span style="color:#d97706">●</span> 当前为示例榜单：去「设置 → 红果榜单」填 52api.cn 的免费 Key，即可显示真实每日/每周榜与封面图';
+    if(st){
+      if(!c.hongguoKey) st.innerHTML='<span style="color:#d97706">●</span> 当前为示例榜单：去「设置 → 红果榜单」填 52api.cn 的 Key（需充值有余额）即可显示真实每日/每周榜与封面图';
+      else if(c.hongguoErr) st.innerHTML='<span style="color:#dc2626">●</span> 红果接口异常：'+esc(c.hongguoErr)+' —— 请到 52api.cn 确认「红果排行榜」已开通且有余额（当前显示示例榜）';
+      else st.innerHTML='<span style="color:#16a34a">●</span> 已接入红果榜单（真实封面+直达链接）';
+    }
     const box=$("#chaijieList");
     if(!feed.items||!feed.items.length){box.innerHTML='<div class="empty">榜单为空，点「立即刷新榜单」。</div>';return;}
     box.className="grid";
