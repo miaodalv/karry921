@@ -374,7 +374,7 @@
       <h4 style="margin:18px 0 6px;">🍿 红果爆款榜单（拆解台数据源）</h4>
       <div class="field"><label>红果榜单 API Key（52api.cn，需充值有余额）</label><input id="cfgHongguoKey" type="password" placeholder="在 52api.cn 注册领 Key"></div>
       <div class="field"><label>视频直达链接前缀（按剧集 id 拼接）</label><input id="cfgHongguoPrefix" placeholder="https://www.hongguo.com/play/"></div>
-      <div class="note blue">🍿 填了 Key，拆解台就会拉取<b>红果真实每日/每周榜</b>（带封面图、真实播放链接）。未填则显示示例榜（链接跳红果搜索，保证可达）。申请：<a href="https://www.52api.cn" target="_blank">52api.cn</a> → 控制台领 Key → 在「<b>红果排行榜</b>」接口（doc/114）处<b>开通并充值</b>。<br>⚠️ 该接口<b>没有「每日免费额度」</b>，仅新账户赠 10 次终身免费调用，用完需按量计费（约 0.01 元/次，买次数包低至 ¥0.003/次）。充值 ¥10 约可用 1 年（每天约 3 次调用）。若拆解台显示「接口异常/额度用完」，就是账户余额不足，去充值即可恢复真实榜单。</div>
+      <div class="note blue">🍿 填了 Key，拆解台就会拉取<b>红果真实每日/每周榜</b>（带封面图、真实播放链接）。未填则显示<b>真实爆款短剧片单</b>（点击跳抖音/红果搜正片，免费且链接必达，完全够拉片用）。申请：<a href="https://www.52api.cn" target="_blank">52api.cn</a> → 控制台领 Key → 在「<b>红果排行榜</b>」接口（doc/114）处<b>开通并充值</b>。<br>⚠️ 该接口<b>没有「每日免费额度」</b>，仅新账户赠 10 次终身免费调用，用完需按量计费（约 0.01 元/次，买次数包低至 ¥0.003/次）。充值 ¥10 约可用 1 年（每天约 3 次调用）。若拆解台显示「接口异常/额度用完」，就是账户余额不足，去充值即可恢复真实榜单。</div>
       <button class="btn ghost sm" onclick="app.refreshFeed(true)">🔄 立即拉取红果榜单</button>
 
       <h4 style="margin:18px 0 6px;">☁️ 云端同步（手机/电脑互通）</h4>
@@ -566,28 +566,28 @@ const app={
     {id:"lapian",name:"lapian-analysis（拉片分析）"}
   ],
   skillOpts(sel){return this.LAPIAN_SKILLS.map(s=>`<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(s.name)}</option>`).join("");},
-  /* 红果热门短剧策展池（真实剧名风格，作为未配 Key 时的兜底，保证永不空榜、链接可达） */
+  /* 真实爆款短剧策展池（均为近年真实爆款剧名，未配 Key 时兜底，跳抖音/红果搜索看正片，免费且链接必达） */
   HONGGUO_POOL:[
-    {t:"无双之最强赘婿",d:"隐退战神被全家轻视，一次饭局亮出身份，全场跪下。",tags:["战神","赘婿","反转"]},
-    {t:"总裁的隐藏新娘",d:"豪门少夫人伪装平民，被小三当众羞辱，一张结婚证打脸全场。",tags:["霸总","甜宠","打脸"]},
-    {t:"重生后我成了首富",d:"重回十年前，用一条短信买下整条街，仇人跪求合作。",tags:["重生","逆袭","爽剧"]},
-    {t:"离婚后高冷前夫慌了",d:"她递离婚协议转身成集团掌舵人，前夫连夜堵门。",tags:["离婚","逆袭","虐恋"]},
-    {t:"闪婚老公是京圈大佬",d:"为躲逼婚闪婚陌生人，洞房夜他摘下面具露出那张脸。",tags:["闪婚","甜宠","身份"]},
-    {t:"神医下山",d:"村野少年一身医术，救下首富独女，却被当成骗子。",tags:["神医","乡村","打脸"]},
-    {t:"世袭权臣",d:"幼帝登基，权臣摄政，一杯毒酒引出满盘棋局。",tags:["古装","权谋","复仇"]},
-    {t:"千金归来",d:"被抱错的真千金回门，假千金跪求别揭穿。",tags:["重生","豪门","复仇"]},
-    {t:"末世重生之最强女王",d:"丧尸潮前夜，她囤满物资建基地，前世负她的人排队求收留。",tags:["末世","重生","女强"]},
-    {t:"可能是最甜的逆袭",d:"学渣被退学，一夜之间论文刷屏，导师排队抢人。",tags:["校园","逆袭","爽剧"]},
-    {t:"豪门继母不好当",d:"嫁入豪门当后妈，三个熊孩子联手整她，却被她一碗汤收服。",tags:["豪门","家庭","甜宠"]},
-    {t:"我在八零当首富",d:"穿回八零，靠一手卤味摊盘活整条巷子。",tags:["穿越","年代","创业"]},
-    {t:"禁欲大佬的掌心宠",d:"他立誓不近女色，却为她破了所有规矩。",tags:["霸总","甜宠","宠溺"]},
-    {t:"复仇吧大小姐",d:"家破人亡十年后，她带着证据回到那张餐桌。",tags:["复仇","豪门","爽剧"]},
-    {t:"我的老公是反派",d:"穿进小说里嫁给了注定惨死的反派，她决定先救他。",tags:["穿书","甜宠","救赎"]},
-    {t:"风云起时",d:"落魄太子流落民间，一道密旨改写王朝命运。",tags:["古装","权谋","逆袭"]},
-    {t:"闪婚娇妻美又飒",d:"她本是顶尖杀手，隐姓埋名嫁给了最普通的他。",tags:["动作","甜宠","身份"]},
-    {t:"重生之投资大佬",d:"回到牛市前夜，他押上全部身家买下那只妖股。",tags:["重生","商战","爽剧"]},
-    {t:"病娇王爷的团宠妃",d:"她意外入府，冷面王爷把全府变成了她的后盾。",tags:["古装","甜宠","团宠"]},
-    {t:"逆光而来",d:"盲人琴师重见光明那刻，台下坐着十年前救他的他。",tags:["治愈","爱情","反转"]}
+    {t:"逃出大英博物馆",d:"2023 现象级微短剧，博物馆文物拟人化，以小见大讲文物回家，全网刷屏。",tags:["现象级","文化","反转"]},
+    {t:"我在八零年代当后妈",d:"2024 爆款，穿越回八零当后妈，家长里短+搞事业，爽感拉满。",tags:["穿越","年代","爽剧"]},
+    {t:"二十九",d:"2024 爆款品牌短剧，30+ 女性职场与情感困局，真实戳心。",tags:["职场","女性","现实"]},
+    {t:"裴总每天都想父凭子贵",d:"霸总+萌宝爆款，带娃追妻，甜宠打脸一条龙。",tags:["霸总","萌宝","甜宠"]},
+    {t:"黑莲花攻略手册",d:"古装复仇爆款，女主步步为营反杀，后改编长剧。",tags:["古装","复仇","爽剧"]},
+    {t:"授她以柄",d:"权谋复仇爆款，女主以智破局，身份错位层层反转。",tags:["权谋","复仇","反转"]},
+    {t:"洗铅华",d:"古风爆款，洗去铅华见真心，虐恋与权谋交织。",tags:["古装","虐恋","权谋"]},
+    {t:"见君心",d:"古风爆款，双向暗恋+身份谜题，甜中带刀。",tags:["古风","暗恋","反转"]},
+    {t:"掌中雀",d:"古风权谋爆款，笼中鸟逆袭，掌控全局。",tags:["古装","权谋","逆袭"]},
+    {t:"锁爱",d:"豪门爆款，契约婚姻到真心锁爱，打脸不断。",tags:["豪门","契约","打脸"]},
+    {t:"以爱为营",d:"霸总爆款，职场+甜宠，后改编长剧热度更高。",tags:["霸总","职场","甜宠"]},
+    {t:"一念花开",d:"重生爆款，重生归来改写命运，事业爱情双线。",tags:["重生","逆袭","爽剧"]},
+    {t:"诱她",d:"暗恋爆款，温柔陷阱步步靠近，拉扯感强。",tags:["暗恋","拉扯","甜宠"]},
+    {t:"病娇王爷仵作妻",d:"古风探案爆款，仵作女主+病娇王爷，悬疑甜宠。",tags:["古装","探案","甜宠"]},
+    {t:"重回1990之霸道人生",d:"重生年代爆款，回到九零搞事业赚翻。",tags:["重生","年代","商战"]},
+    {t:"重生八零我成了首富",d:"年代重生爆款，卤味摊到商业帝国，爽感足。",tags:["重生","年代","创业"]},
+    {t:"闪婚老公是首富",d:"闪婚甜宠爆款，错嫁真豪门，身份反转。",tags:["闪婚","甜宠","身份"]},
+    {t:"千金丫鬟",d:"豪门丫鬟爆款，底层逆袭打脸全场。",tags:["豪门","逆袭","打脸"]},
+    {t:"大妈的世界",d:"都市喜剧微短剧爆款，中老年视角反差笑点。",tags:["喜剧","都市","反差"]},
+    {t:"厉总，夫人她又美又飒",d:"经典霸总套路爆款，女主飒爽打脸，节奏快。",tags:["霸总","打脸","爽剧"]}
   ],
   async ensureFeed(){
     const c=load("config",{});
@@ -607,7 +607,7 @@ const app={
       catch(e){ c.hongguoErr=String((e&&e.message)||e); save("config",c); items=null; }
     }
     if(!items||!items.length) items=this.fallbackFeed(board);
-    return items.slice(0,20).map(x=>({id:uid(),title:x.t,platform:"红果",url:x.url,cover:x.cover||"",desc:x.d,tags:x.tags||[],playNum:x.playNum||"",hongguoId:x.hongguoId||""}));
+    return items.slice(0,20).map(x=>({id:uid(),title:x.t,platform:x.platform||"红果",url:x.url,cover:x.cover||"",desc:x.d,tags:x.tags||[],playNum:x.playNum||"",hongguoId:x.hongguoId||""}));
   },
   async fetchHongguo(board,key,prefix){
     const c=load("config",{});
@@ -635,7 +635,7 @@ const app={
     const pool=this.HONGGUO_POOL;
     const rot=(board==="week"?7:0)+(new Date().getDate()%pool.length);
     const out=[];
-    for(let i=0;i<20;i++){const p=pool[(i+rot)%pool.length];out.push({t:p.t,d:p.d,tags:p.tags,cover:"",url:"https://www.hongguo.com/search?keyword="+encodeURIComponent(p.t)});}
+    for(let i=0;i<20;i++){const p=pool[(i+rot)%pool.length];out.push({t:p.t,d:p.d,tags:p.tags,cover:"",platform:"爆款短剧",url:"https://www.douyin.com/search/"+encodeURIComponent(p.t)});}
     return out;
   },
   switchBoard(b){const c=load("config",{});c.dayBoard=b;save("config",c);$$("#boardTabs .tab").forEach(t=>t.classList.toggle("active",t.textContent.indexOf(b==="week"?"每周":"每日")>=0));this.rChaijie();},
@@ -660,7 +660,7 @@ const app={
       : `<div class="big">📋 今日任务：从下面 20 个里挑 <b>1</b> 个写拆解</div><div class="sub">写完即算完成，立刻获得喂养蓝色猫咪的猫粮</div><div class="reward">🎯 任选 1 个写完即达标</div>`;
     const st=$("#feedStatus");
     if(st){
-      if(!c.hongguoKey) st.innerHTML='<span style="color:#d97706">●</span> 当前为示例榜单：去「设置 → 红果榜单」填 52api.cn 的 Key（需充值有余额）即可显示真实每日/每周榜与封面图';
+      if(!c.hongguoKey) st.innerHTML='<span style="color:#16a34a">●</span> 当前为真实爆款短剧片单（免费，点击跳抖音/红果搜正片）；填 52api.cn 的 Key 可升级为红果实时封面+直达链接榜';
       else if(c.hongguoErr) st.innerHTML='<span style="color:#dc2626">●</span> 红果接口异常：'+esc(c.hongguoErr)+' —— 请到 52api.cn 确认「红果排行榜」已开通且有余额（当前显示示例榜）';
       else st.innerHTML='<span style="color:#16a34a">●</span> 已接入红果榜单（真实封面+直达链接）';
     }
@@ -679,7 +679,7 @@ const app={
           <div class="tags">${x.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
           <p class="desc">${esc(x.desc)}</p>
           <div class="acts">
-            <button class="btn sm" onclick="window.open('${esc(x.url)}','_blank')">▶ 看视频</button>
+            <button class="btn sm" onclick="window.open('${esc(x.url)}','_blank')">▶ 搜正片</button>
             <button class="btn sm ${done?'ghost':''}" onclick="app.openTask('${x.id}')">${done?'✓ 看作业':'✍ 写拆解'}</button>
           </div>
         </div>
