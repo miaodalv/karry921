@@ -410,6 +410,7 @@ function load(k,d){try{const v=localStorage.getItem(PREFIX+k);return v?JSON.pars
 function save(k,v){localStorage.setItem(PREFIX+k,JSON.stringify(v));app.refreshSync();CloudSync.schedule(k);}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function today(){const d=new Date();return d.toISOString().slice(0,10);}
+function weekKey(){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10);}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
@@ -590,9 +591,9 @@ const app={
   ],
   async ensureFeed(){
     const c=load("config",{});
-    const td=today();
+    const td=today();const wk=weekKey();
     if(!c.feedDay||c.feedDay.date!==td) c.feedDay={date:td,items:await this.buildFeed("day")};
-    if(!c.feedWeek||c.feedWeek.date!==td) c.feedWeek={date:td,items:await this.buildFeed("week")};
+    if(!c.feedWeek||c.feedWeek.week!==wk) c.feedWeek={date:td,week:wk,items:await this.buildFeed("week")};
     if(!c.dayBoard)c.dayBoard="day";
     if(!c.todayDone)c.todayDone={date:"",feedId:""};
     if(!c.cat)c.cat={food:0,fedCount:0,xp:0,level:1,fedToday:""};
@@ -639,11 +640,11 @@ const app={
   },
   switchBoard(b){const c=load("config",{});c.dayBoard=b;save("config",c);$$("#boardTabs .tab").forEach(t=>t.classList.toggle("active",t.textContent.indexOf(b==="week"?"每周":"每日")>=0));this.rChaijie();},
   async refreshFeed(force){
-    const c=load("config",{});const td=today();const b=c.dayBoard||"day";
+    const c=load("config",{});const td=today();const wk=weekKey();const b=c.dayBoard||"day";
     if(force||!c["feed"+ (b==="week"?"Week":"Day")]||c["feed"+(b==="week"?"Week":"Day")].date!==td){
       this.toast("正在拉取红果"+(b==="week"?"每周":"每日")+"榜…");
       const items=await this.buildFeed(b);
-      c["feed"+(b==="week"?"Week":"Day")]={date:td,items};
+      c["feed"+(b==="week"?"Week":"Day")]={date:td,week:b==="week"?wk:"",items};
       save("config",c);
     }
     this.rChaijie();this.toast("已刷新榜单");
