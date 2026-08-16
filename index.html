@@ -181,6 +181,7 @@
   .xp-bar{height:12px;background:#e9eef7;border-radius:8px;overflow:hidden;margin-top:8px;}
   .xp-bar i{display:block;height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);}
 
+</style>
 </head>
 <body>
 
@@ -651,7 +652,7 @@ const app={
     box.innerHTML=feed.items.map(x=>{
       const hw=tasks.find(t=>t.feedId===x.id);
       const done=hw&&hw.status==="done";
-      const cover=x.cover?`<img class="cover" src="${esc(x.cover)}" onclick="app.openTask('${x.id}')" onerror="this.outerHTML='<div class=\\'cover ph\\' onclick=\\'app.openTask(\\'${x.id}\\')\\'>🎬</div>'">`:`<div class="cover ph" onclick="app.openTask('${x.id}')">🎬</div>`;
+      const cover=x.cover?`<div class="cover" style="background-image:url('${esc(x.cover)}');background-size:cover;background-position:center;cursor:pointer;" onclick="app.openTask('${x.id}')"></div>`:`<div class="cover ph" onclick="app.openTask('${x.id}')">🎬</div>`;
       return `<div class="item vcard ${done?'done':''}">
         ${cover}
         <div class="body">
