@@ -223,7 +223,7 @@
     <section class="section active" id="sec-chaijie">
       <div class="sec-head">
         <h2>🦀 短剧爆款拆解台</h2>
-        <p>每天凌晨自动从 <b>红果每日榜 / 每周榜</b> 推送 20 个真实爆款短剧。你只需<b>挑选 1 个写拆解</b>就算完成任务，立刻获得喂养蓝色猫咪的猫粮🐱。</p>
+        <p>每天由 <b>AI 免费生成近期爆款短剧</b> 推送 20 个。你只需<b>挑选 1 个、点平台按钮跳 App 看完、写拆解</b>就算完成任务，立刻获得喂养蓝色猫咪的猫粮🐱。</p>
       </div>
       <div id="dailyBanner" class="cat-banner"></div>
       <div class="toolbar">
@@ -403,7 +403,7 @@
 
 <script>
 const PREFIX="wb_lanchao_";
-const SYNC_KEYS=["config","tasks","gallery","manju","lapian","school","media","cover","seeded"];
+const SYNC_KEYS=["config","cloudTasks","gallery","manju","lapian","school","media","cover","seeded"];
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 function load(k,d){try{const v=localStorage.getItem(PREFIX+k);return v?JSON.parse(v):d;}catch(e){return d;}}
@@ -413,12 +413,13 @@ function today(){const d=new Date();return d.toISOString().slice(0,10);}
 function weekKey(){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10);}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function extractJSON(s){if(!s)return null;try{return JSON.parse(s);}catch(e){}const m=s.match(/\[[\s\S]*\]/);if(m){try{return JSON.parse(m[0]);}catch(e){}}const m2=s.match(/\{[\s\S]*\}/);if(m2){try{return JSON.parse(m2[0]);}catch(e){}}return null;}
 
 /* ---------- 云端同步（GitHub Gist，手机/电脑跨设备共享） ---------- */
 const CloudSync={
   _t:null,
   enabled(){const c=load("config",{});return !!(c.syncOn&&c.syncToken&&c.syncGist);},
-  isLocalEmpty(){ return SYNC_KEYS.filter(k=>k!=="config"&&k!=="seeded").every(k=>{const v=localStorage.getItem(PREFIX+k);if(!v)return true;try{const p=JSON.parse(v);return Array.isArray(p)?p.length===0:(p&&Object.keys(p).length===0);}catch(e){return false;}}); },
+  isLocalEmpty(){ const lt=load("tasks",[]); if(Array.isArray(lt)&&lt.length) return false; return SYNC_KEYS.filter(k=>k!=="config"&&k!=="seeded").every(k=>{const v=localStorage.getItem(PREFIX+k);if(!v)return true;try{const p=JSON.parse(v);return Array.isArray(p)?p.length===0:(p&&Object.keys(p).length===0);}catch(e){return false;}}); },
   _headers(){const c=load("config",{});return {"Authorization":"Bearer "+c.syncToken,"Content-Type":"application/json","Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};},
   _url(){const c=load("config",{});return "https://api.github.com/gists/"+c.syncGist;},
   collect(){const o={};SYNC_KEYS.forEach(k=>{const v=localStorage.getItem(PREFIX+k);if(v!==null)o[k]=v;});return o;},
@@ -435,7 +436,7 @@ const CloudSync={
       if(!r.ok){app.toast("☁️ 下载失败 HTTP "+r.status+"（检查 Token/Gist ID）");return false;}
       const j=await r.json(); const f=j.files&&j.files["workbench.json"];
       if(!f||!f.content){app.toast("☁️ 云端暂无数据，保留本机内容");return true;}
-      this.apply(JSON.parse(f.content)); app.toast("☁️ 已从云端拉取并合并"); return true;
+      this.apply(JSON.parse(f.content)); this.mergeCloud(); app.toast("☁️ 已从云端拉取并合并"); return true;
     }catch(e){app.toast("☁️ 下载失败："+e.message);return false;}
   },
   async test(){ if(!this.enabled()){app.toast("请先填写 GitHub Token 与 Gist ID 并勾选启用同步");return;}
@@ -443,6 +444,7 @@ const CloudSync={
       if(r.ok)app.toast("✅ 云同步连通成功"); else app.toast("❌ 连通失败 HTTP "+r.status+"（检查 Token/Gist ID）");
     }catch(e){app.toast("❌ 连通失败："+e.message);}
   },
+  mergeCloud(){ const ct=load("cloudTasks",[]); if(!Array.isArray(ct)||!ct.length)return; const ts=load("tasks",[]); const map={}; (Array.isArray(ts)?ts:[]).forEach(t=>{if(t&&t.id)map[t.id]=t;}); ct.forEach(t=>{if(t&&t.id&&!map[t.id])map[t.id]=t;}); save("tasks",Object.values(map)); },
   schedule(k){ if(!this.enabled())return; if(k==="seeded")return;
     clearTimeout(this._t); this._t=setTimeout(()=>{ this.upload(); }, 1200);
   }
@@ -606,8 +608,9 @@ const app={
       try{ items=await this.fetchHongguo(board,c.hongguoKey,c.hongguoPrefix||"https://www.hongguo.com/play/"); }
       catch(e){ c.hongguoErr=String((e&&e.message)||e); save("config",c); items=null; }
     }
+    if(!items||!items.length) items=await this.aiFeed(board);
     if(!items||!items.length) items=this.fallbackFeed(board);
-    return items.slice(0,20).map(x=>({id:uid(),title:x.t,platform:x.platform||"红果",url:x.url,cover:x.cover||"",desc:x.d,tags:x.tags||[],playNum:x.playNum||"",hongguoId:x.hongguoId||""}));
+    return items.slice(0,20).map(x=>({id:uid(),title:x.t,platform:x.platform||"爆款短剧",url:x.url||"",cover:x.cover||"",desc:x.d,tags:x.tags||[],playNum:x.playNum||"",hongguoId:x.hongguoId||""}));
   },
   async fetchHongguo(board,key,prefix){
     const c=load("config",{});
@@ -638,6 +641,23 @@ const app={
     for(let i=0;i<20;i++){const p=pool[(i+rot)%pool.length];out.push({t:p.t,d:p.d,tags:p.tags,cover:"",platform:"爆款短剧",url:"https://www.douyin.com/search/"+encodeURIComponent(p.t)});}
     return out;
   },
+  async aiFeed(board){
+    const c=load("config",{});const td=today();
+    if(!c.aiFeed)c.aiFeed={date:"",items:{}};
+    if(c.aiFeed.date===td&&c.aiFeed.items[board]&&c.aiFeed.items[board].length) return c.aiFeed.items[board];
+    if(!c.endpoint||!c.key) return null;
+    const period=board==="week"?"最近一周":"今天";
+    const sys="你是短剧爆款数据分析师，熟悉抖音、红果、快手上的微短剧。只输出 JSON，不要任何解释文字。";
+    const user="请列出"+period+"最热门的 20 部短剧（含微短剧/男频女频）剧名。每部给：t=剧名，d=1-2 句爆款简介，tags=3 个风格标签(如 霸总/重生/甜宠)。严格只输出 JSON 数组，格式：[{\"t\":\"剧名\",\"d\":\"简介\",\"tags\":[\"标签1\",\"标签2\",\"标签3\"]}]，不要 markdown、不要额外文字。";
+    const r=await this.callAI(sys,user);
+    if(!r.ok) return null;
+    let arr=extractJSON(r.text);
+    if(!Array.isArray(arr)||!arr.length) return null;
+    arr=arr.slice(0,20).map(x=>({t:String(x.t||"").slice(0,40),d:String(x.d||"").slice(0,120),tags:Array.isArray(x.tags)?x.tags.slice(0,3).map(String):[]}));
+    c.aiFeed={date:td,items:{day:c.aiFeed.items.day||[],week:c.aiFeed.items.week||[]}};
+    c.aiFeed.items[board]=arr;save("config",c);
+    return arr;
+  },
   switchBoard(b){const c=load("config",{});c.dayBoard=b;save("config",c);$$("#boardTabs .tab").forEach(t=>t.classList.toggle("active",t.textContent.indexOf(b==="week"?"每周":"每日")>=0));this.rChaijie();},
   async refreshFeed(force){
     const c=load("config",{});const td=today();const wk=weekKey();const b=c.dayBoard||"day";
@@ -660,9 +680,11 @@ const app={
       : `<div class="big">📋 今日任务：从下面 20 个里挑 <b>1</b> 个写拆解</div><div class="sub">写完即算完成，立刻获得喂养蓝色猫咪的猫粮</div><div class="reward">🎯 任选 1 个写完即达标</div>`;
     const st=$("#feedStatus");
     if(st){
-      if(!c.hongguoKey) st.innerHTML='<span style="color:#16a34a">●</span> 当前为真实爆款短剧片单（免费，点击跳抖音/红果搜正片）；填 52api.cn 的 Key 可升级为红果实时封面+直达链接榜';
-      else if(c.hongguoErr) st.innerHTML='<span style="color:#dc2626">●</span> 红果接口异常：'+esc(c.hongguoErr)+' —— 请到 52api.cn 确认「红果排行榜」已开通且有余额（当前显示示例榜）';
-      else st.innerHTML='<span style="color:#16a34a">●</span> 已接入红果榜单（真实封面+直达链接）';
+      const aiOk=c.aiFeed&&c.aiFeed.date===today()&&((c.aiFeed.items&&c.aiFeed.items.day&&c.aiFeed.items.day.length)||(c.aiFeed.items&&c.aiFeed.items.week&&c.aiFeed.items.week.length));
+      if(c.hongguoKey&&!c.hongguoErr) st.innerHTML='<span style="color:#16a34a">●</span> 已接入红果榜单（真实封面+直达链接）';
+      else if(c.hongguoErr) st.innerHTML='<span style="color:#dc2626">●</span> 红果接口异常：'+esc(c.hongguoErr)+' —— 请到 52api.cn 确认「红果排行榜」已开通且有余额';
+      else if(aiOk) st.innerHTML='<span style="color:#16a34a">●</span> 每日由 AI 免费生成近期爆款短剧（点击平台按钮跳 App 搜正片）';
+      else st.innerHTML='<span style="color:#d97706">●</span> 配置 AI 接口（设置→OpenRouter 免费）后，每日自动生成近期爆款；当前显示策展片单';
     }
     const box=$("#chaijieList");
     if(!feed.items||!feed.items.length){box.innerHTML='<div class="empty">榜单为空，点「立即刷新榜单」。</div>';return;}
@@ -675,16 +697,27 @@ const app={
         ${cover}
         <div class="body">
           <h4>${esc(x.title)}</h4>
-          <div class="meta">🔥 红果${x.playNum?(' · '+esc(x.playNum)):''}</div>
+          <div class="meta">🔥 爆款短剧 · ${(b==="week"?"每周榜":"每日榜")}${x.playNum?(' · '+esc(x.playNum)):''}</div>
           <div class="tags">${x.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
           <p class="desc">${esc(x.desc)}</p>
           <div class="acts">
-            <button class="btn sm" onclick="window.open('${esc(x.url)}','_blank')">▶ 搜正片</button>
+            <button class="btn sm" onclick="app.copyName('${esc(x.title)}')">📋 复制剧名</button>
+            <button class="btn sm" onclick="app.jumpApp('抖音','${esc(x.title)}')">抖音</button>
+            <button class="btn sm" onclick="app.jumpApp('红果','${esc(x.title)}')">红果</button>
+            <button class="btn sm" onclick="app.jumpApp('快手','${esc(x.title)}')">快手</button>
             <button class="btn sm ${done?'ghost':''}" onclick="app.openTask('${x.id}')">${done?'✓ 看作业':'✍ 写拆解'}</button>
           </div>
         </div>
       </div>`;
     }).join("");
+  },
+  copyName(n){ try{ navigator.clipboard.writeText(n); this.toast("已复制剧名："+n); }catch(e){ this.toast("复制失败，请手动长按选择"); } },
+  jumpApp(p,kw){
+    const isMob=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const u={抖音:{scheme:"snssdk1128://search?keyword=",web:"https://www.douyin.com/search/"},红果:{scheme:null,web:"https://www.hongguo.com/search?keyword="},快手:{scheme:"kwai://search?keyword=",web:"https://www.kuaishou.com/search/video?keyword="}}[p];
+    const url=(isMob&&u.scheme)?u.scheme+encodeURIComponent(kw):u.web+encodeURIComponent(kw);
+    window.open(url,"_blank");
+    if(!isMob)this.toast(p+"：已打开网页搜索（手机点此可直接跳 App 搜）");
   },
   openTask(feedId){
     const c=load("config",{});const b=c.dayBoard||"day";
@@ -694,13 +727,16 @@ const app={
     const skill=hw&&hw.skill?hw.skill:"lapian-analysis";
     const tmpl=hw&&hw.template?hw.template:null;
     $("#modal").innerHTML=`<h3>${esc(item.title)} <button class="close" onclick="app.closeModal()">×</button></h3>
-      <div class="note blue">观看：<a href="${esc(item.url)}" target="_blank" class="link">▶ 点此直达红果视频</a>（网页打不开就复制链接到红果 App）</div>
+      <div class="note blue">📱 在拆解台卡片点「抖音 / 红果 / 快手」按钮可直接跳 App 搜正片。看完后把<b>视频链接</b>粘贴到下方（可附观后感），再点「提交」让 AI 写拆解。</div>
+      <div class="field"><label>🎬 视频链接（看完视频复制回来粘贴）</label><input id="taskUrl" value="${esc((hw&&hw.url)||'')}" placeholder="https://v.douyin.com/... 或红果/快手分享链接"></div>
+      <div class="field"><label>📝 我的观后感 / 关键笔记（可选，帮 AI 写得更准）</label><textarea id="taskNote" rows="3" placeholder="例：前3秒是医闹冲突，第15秒亮出院长身份反转，情绪从 -4 拉到 +5">${esc((hw&&hw.note)||'')}</textarea></div>
       <div class="field"><label>🛠 使用的拉片技能（拆解台默认：导演级视频拉片 Skill）</label>
         <select id="taskSkill">${this.skillOpts(skill)}</select>
         <div class="note" style="margin-top:4px;">在 WorkBuddy 对话中调用该技能可获得专业拉片支持；本工作台记录你选用的技能。</div>
       </div>
       ${this.lapianTemplate(tmpl)}
       <div class="modal-actions">
+        <label class="chk" style="margin-right:auto;align-self:center"><input type="checkbox" id="taskCloud" ${hw&&hw.cloud?'checked':''}> ☁️ 同步到云端（跨设备可见）</label>
         <button class="btn ghost" onclick="app.saveTask('${feedId}')">💾 保存作业</button>
         <button class="btn" onclick="app.submitTask('${feedId}')">✅ 提交并完成拆解</button>
       </div>
@@ -772,26 +808,37 @@ const app={
     return t;
   },
   saveTask(feedId){
+    const url=$("#taskUrl")?$("#taskUrl").value.trim():"";
+    const note=$("#taskNote")?$("#taskNote").value.trim():"";
     const c=load("config",{});const b=c.dayBoard||"day";
     const feed=(b==="week"?c.feedWeek:c.feedDay)||{items:[]};
     const item=feed.items.find(x=>x.id===feedId);if(!item)return;
     const tasks=load("tasks",[]);let hw=tasks.find(t=>t.feedId===feedId);
-    if(!hw){hw={feedId,title:item.title,platform:"红果",url:item.url};tasks.push(hw);}
+    if(!hw){hw={feedId,title:item.title,platform:"爆款短剧",url:url,note:note};tasks.push(hw);}
+    else { hw.url=url; hw.note=note; }
     hw.template=this.collectTask(feedId);hw.skill=$("#taskSkill").value;hw.status=hw.status||"todo";
+    hw.cloud=$("#taskCloud")&&$("#taskCloud").checked;
+    if(hw.cloud){ const ct=load("cloudTasks",[]); const i=ct.findIndex(x=>x.id===hw.id); const rec=Object.assign({},hw); if(i>=0)ct[i]=rec; else ct.push(rec); save("cloudTasks",ct); }
     save("tasks",tasks);this.toast("💾 作业已保存");
   },
   async submitTask(feedId){
+    const c=load("config",{});const b=c.dayBoard||"day";
+    const feed=(b==="week"?c.feedWeek:c.feedDay)||{items:[]};
+    const item=feed.items.find(x=>x.id===feedId);if(!item)return;
+    const url=$("#taskUrl")?$("#taskUrl").value.trim():"";
+    const note=$("#taskNote")?$("#taskNote").value.trim():"";
     this.saveTask(feedId);
     const tasks=load("tasks",[]);const hw=tasks.find(t=>t.feedId===feedId);if(!hw)return;
     this.toast("AI 拉片分析中…");
     const t=hw.template||{};
-    const user="【拉片作业】\n片名："+(t.f_title||"")+"\n钩子："+(t.f_hook||"")+"\n情绪曲线："+JSON.stringify(t.emotion||[])+"\n结构："+(t.m1_act||"")+" / "+(t.m2_act||"")+" / "+(t.m3_act||"")+" / "+(t.m4_act||"")+"\n视听："+(t.v_shot||"")+(t.v_move||"")+(t.v_light||"")+(t.v_sfx||"")+(t.v_dialog||"")+"\n套路："+(t.g_hook||"")+(t.g_trigger||"")+(t.g_lever||"")+(t.g_next||"");
-    const r=await this.callAI("你是资深短剧编剧与拉片导师。针对用户的拉片作业，逐栏点评：结构是否合规、情绪曲线是否波浪形、钩子与反转是否到位、视听语言是否服务情绪，并给出可优化点。用中文、条理清晰。",user);
+    const user="【视频链接】"+(url||"(未提供)")+"\n【我的观后感】"+(note||"(未提供)")+"\n【片名】"+(t.f_title||item.title)+"\n【拉片作业】\n钩子："+(t.f_hook||"")+"\n情绪曲线："+JSON.stringify(t.emotion||[])+"\n结构："+(t.m1_act||"")+" / "+(t.m2_act||"")+" / "+(t.m3_act||"")+" / "+(t.m4_act||"")+"\n视听："+(t.v_shot||"")+(t.v_move||"")+(t.v_light||"")+(t.v_sfx||"")+(t.v_dialog||"")+"\n套路："+(t.g_hook||"")+(t.g_trigger||"")+(t.g_lever||"")+(t.g_next||"");
+    const r=await this.callAI("你是资深短剧编剧与拉片导师。用户看完视频后提供了链接与观后感，并填写了拉片模板。请结合这些信息，逐栏点评：结构是否合规、情绪曲线是否波浪形、钩子与反转是否到位、视听语言是否服务情绪，并给出可优化点。用中文、条理清晰。",user);
     let html;
     if(r.need)html='<div class="note">未配置 AI 接口，作业已保存。配置后重新提交即可生成专业对比分析。</div>';
     else if(r.err)html='<div class="note">调用失败：'+esc(r.err)+'</div>';
     else html='<pre style="white-space:pre-wrap;font-size:13px;line-height:1.7;background:#f6f9ff;border:1px solid var(--line);border-radius:12px;padding:12px;">'+esc(r.text)+'</pre>';
-    hw.ai=html;hw.status="done";hw.doneAt=today();
+    hw.ai=html;hw.status="done";hw.doneAt=today();hw.cloud=$("#taskCloud")&&$("#taskCloud").checked;
+    if(hw.cloud){ const ct=load("cloudTasks",[]); const i=ct.findIndex(x=>x.id===hw.id); const rec=Object.assign({},hw); if(i>=0)ct[i]=rec; else ct.push(rec); save("cloudTasks",ct); }
     save("tasks",tasks);
     this.grantDailyReward(feedId);
     $("#aiBox").innerHTML="<h4>🤖 AI 拉片分析（对比）</h4>"+html;
