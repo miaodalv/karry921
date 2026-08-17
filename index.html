@@ -119,7 +119,8 @@
 
   .cover{width:100%;height:150px;object-fit:cover;border-radius:16px;background:linear-gradient(120deg,var(--blue),var(--blue-light));}
   .cover-empty{display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;border-radius:16px;background:linear-gradient(120deg,var(--blue),var(--blue-light));height:150px;cursor:pointer;}
-  /* 拆解台：蓝色主题贴纸墙（替代封面框） */
+  /* 拆解台：蓝色主题贴纸（左侧小贴纸/卡片装饰） */
+  .sticker-svg{display:block;filter:drop-shadow(0 3px 4px rgba(30,70,160,.22));flex-shrink:0;}
   .sticker-hero{position:relative;height:118px;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 12px 12px, rgba(255,255,255,.6) 3px, transparent 4px) 0 0/26px 26px, linear-gradient(140deg,#e7f0ff,#cfe0ff);display:flex;align-items:center;justify-content:center;}
   .sticker-hero svg{display:block;filter:drop-shadow(0 4px 5px rgba(30,70,160,.28));}
   .sticker-hero .sm{position:absolute;}
@@ -166,6 +167,24 @@
   .vcard .acts{display:flex;gap:6px;margin-top:8px;}
   .vcard .acts .btn{flex:1;}
   .vcard.done{outline:2px solid #16a34a;}
+  /* 拆解台卡片：左侧贴纸+标题 / 中间信息 / 右侧按钮 */
+  .cj-card{display:flex;align-items:stretch;gap:12px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;}
+  .cj-card.done{outline:2px solid #16a34a;}
+  .cj-left{width:76px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .cj-left h4{margin:0;font-size:13px;line-height:1.35;text-align:center;word-break:break-all;}
+  .cj-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center;}
+  .cj-mid .meta{font-size:11px;color:var(--muted);}
+  .cj-mid .desc{font-size:12px;color:#445;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .cj-mid .tags{display:flex;gap:5px;flex-wrap:wrap;}
+  .cj-mid .tag{font-size:10px;background:var(--blue-bg);color:var(--blue-deep);padding:2px 7px;border-radius:10px;}
+  .cj-right{display:flex;flex-direction:column;gap:6px;justify-content:center;align-items:stretch;}
+  .cj-right .btn{font-size:11px;padding:5px 10px;white-space:nowrap;}
+  @media(max-width:640px){
+    .cj-card{gap:10px;padding:10px;}
+    .cj-left{width:62px;}
+    .cj-left h4{font-size:12px;}
+    .cj-right .btn{font-size:10px;padding:4px 8px;}
+  }
   .emotion-chart{width:100%;height:120px;border:1px solid var(--line);border-radius:10px;background:#fff;}
   .tmpl-section{margin-bottom:14px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;}
   .tmpl-section h4{margin:0 0 8px;font-size:13px;color:var(--blue-deep);}
@@ -418,19 +437,30 @@ function weekKey(){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.get
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function extractJSON(s){if(!s)return null;try{return JSON.parse(s);}catch(e){}const m=s.match(/\[[\s\S]*\]/);if(m){try{return JSON.parse(m[0]);}catch(e){}}const m2=s.match(/\{[\s\S]*\}/);if(m2){try{return JSON.parse(m2[0]);}catch(e){}}return null;}
-/* ===== 蓝色主题贴纸（卡通螃蟹/蟹钳/小猫/猫粮碗），内联 SVG，零外部依赖 ===== */
+/* ===== 蓝色主题贴纸库（可复用），内联 SVG，零外部依赖 =====
+   风格：圆润可爱、蓝白配色、粗描边、腮红、简笔画感
+   角色：螃蟹 crab、蟹钳 claw、蓝猫 cat、猫粮碗 bowl、鲸鱼 whale、鲨鱼 shark、兔子 rabbit、玉桂狗 cinnamoroll
+*/
+const STICKER_TYPES=['crab','whale','shark','cat','rabbit','cinnamoroll','claw','bowl'];
 function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 function stickerSVG(type,size){
-  const open=`<svg viewBox="0 0 100 100" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
-  const C='#2f6bff',L='#9cc0ff',W='#ffffff';
-  if(type==='cat')return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round"><path d="M26 34 L20 10 L46 26 Z" fill="${C}"/><path d="M74 34 L80 10 L54 26 Z" fill="${C}"/><path d="M30 30 L27 17 L41 27 Z" fill="${L}" stroke="none"/><path d="M70 30 L73 17 L59 27 Z" fill="${L}" stroke="none"/><circle cx="50" cy="56" r="30" fill="${C}"/></g><ellipse cx="40" cy="54" rx="5.5" ry="7" fill="${W}"/><ellipse cx="60" cy="54" rx="5.5" ry="7" fill="${W}"/><circle cx="40" cy="55" r="3" fill="#16306e"/><circle cx="60" cy="55" r="3" fill="#16306e"/><path d="M47 64 L53 64 L50 69 Z" fill="#ff9ec4" stroke="none"/><path d="M50 69 q-6 6 -12 2 M50 69 q6 6 12 2" stroke="#16306e" stroke-width="2.5" fill="none" stroke-linecap="round"/><g stroke="${W}" stroke-width="2.5" stroke-linecap="round"><path d="M22 58 L8 54 M22 64 L8 66"/><path d="M78 58 L92 54 M78 64 L92 66"/></g>`+`</svg>`;
-  if(type==='crab')return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M30 66 q-12 4 -15 15" fill="none" stroke="${C}"/><path d="M34 72 q-10 10 -8 20" fill="none" stroke="${C}"/><path d="M70 66 q12 4 15 15" fill="none" stroke="${C}"/><path d="M66 72 q10 10 8 20" fill="none" stroke="${C}"/><ellipse cx="50" cy="56" rx="26" ry="18" fill="${C}"/><path d="M44 40 L43 28" fill="none" stroke="${C}"/><path d="M56 40 L57 28" fill="none" stroke="${C}"/><path d="M26 52 q-12 -4 -16 -14" fill="none" stroke="${C}" stroke-width="6"/><path d="M6 34 q-4 5 2 11 q6 -2 2 -11 z" fill="#3f7bff"/><path d="M74 52 q12 -4 16 -14" fill="none" stroke="${C}" stroke-width="6"/><path d="M94 34 q4 5 -2 11 q-6 -2 -2 -11 z" fill="#3f7bff"/></g><circle cx="44" cy="26" r="6" fill="${W}"/><circle cx="56" cy="26" r="6" fill="${W}"/><circle cx="44" cy="27" r="3" fill="#16306e"/><circle cx="56" cy="27" r="3" fill="#16306e"/><path d="M40 60 q10 8 20 0" fill="none" stroke="#16306e" stroke-width="2.5" stroke-linecap="round"/>`+`</svg>`;
-  if(type==='claw')return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M64 28 q22 8 24 34" fill="none" stroke="${C}" stroke-width="8"/><path d="M18 40 A16 16 0 1 1 50 40" fill="${C}"/><path d="M22 60 A16 16 0 1 0 54 60" fill="#3f7bff"/></g><path d="M26 36 A10 10 0 0 1 42 36" fill="none" stroke="${L}" stroke-width="3" stroke-linecap="round"/>`+`</svg>`;
-  return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round"><path d="M20 52 h60 a8 8 0 0 1 -8 20 h-44 a8 8 0 0 1 -8 -20 z" fill="${L}"/><ellipse cx="50" cy="52" rx="30" ry="9" fill="#cfe0ff"/></g><g fill="#7a4a23" stroke="none"><circle cx="42" cy="50" r="3.2"/><circle cx="52" cy="48" r="3.2"/><circle cx="60" cy="51" r="3.2"/><circle cx="47" cy="53" r="3"/><circle cx="56" cy="54" r="3"/></g><path d="M72 28 q-5 -7 -10 0 q-5 7 10 14 q15 -7 10 -14 q-5 -7 -10 0 z" fill="#ff9ec4" stroke="none"/>`+`</svg>`;
+  const open=`<svg class="sticker-svg" viewBox="0 0 100 100" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
+  const C='#5B9AFA',D='#3A6FC8',L='#B8D6FF',W='#FFFFFF',P='#FFB6C1',K='#1C3A6E';
+  const baseStroke=` stroke="${D}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"`;
+  const t=type;
+  if(t==='cat')return open+`<g ${baseStroke}><path d="M28 32 L22 12 L44 24 Z" fill="${C}"/><path d="M72 32 L78 12 L56 24 Z" fill="${C}"/><ellipse cx="50" cy="58" rx="30" ry="26" fill="${W}"/><path d="M32 26 q-6 8 -4 20" fill="none"/><path d="M68 26 q6 8 4 20" fill="none"/></g><ellipse cx="38" cy="56" rx="5" ry="6.5" fill="${K}"/><ellipse cx="62" cy="56" rx="5" ry="6.5" fill="${K}"/><circle cx="39" cy="54.5" r="1.6" fill="${W}"/><circle cx="63" cy="54.5" r="1.6" fill="${W}"/><path d="M47 66 h6 l-3 4 z" fill="${P}" stroke="none"/><path d="M50 70 q-5 5 -10 2 M50 70 q5 5 10 2" stroke="${D}" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="28" cy="66" rx="4" ry="2.5" fill="${P}" opacity=".7" stroke="none"/><ellipse cx="72" cy="66" rx="4" ry="2.5" fill="${P}" opacity=".7" stroke="none"/><g stroke="${D}" stroke-width="2.5" stroke-linecap="round" fill="none"><path d="M22 62 L10 58 M22 67 L10 69"/><path d="M78 62 L90 58 M78 67 L90 69"/></g><path d="M55 36 q4 -2 6 2" fill="none" stroke="${L}" stroke-width="3" stroke-linecap="round"/>`+`</svg>`;
+  if(t==='crab')return open+`<g ${baseStroke}><path d="M26 54 q-10 -2 -14 -12" fill="none"/><path d="M74 54 q10 -2 14 -12" fill="none"/><path d="M22 64 q-8 8 -6 18" fill="none"/><path d="M78 64 q8 8 6 18" fill="none"/><ellipse cx="50" cy="58" rx="27" ry="20" fill="${C}"/></g><g stroke="${D}" stroke-width="3" stroke-linecap="round" fill="none"><path d="M28 42 q-10 -6 -14 -14"/><path d="M72 42 q10 -6 14 -14"/></g><circle cx="24" cy="25" r="7" fill="${W}" stroke="${D}" stroke-width="3"/><circle cx="76" cy="25" r="7" fill="${W}" stroke="${D}" stroke-width="3"/><circle cx="25" cy="26" r="2.5" fill="${K}"/><circle cx="77" cy="26" r="2.5" fill="${K}"/><circle cx="22" cy="22" r="2" fill="${P}" stroke="none"/><circle cx="80" cy="22" r="2" fill="${P}" stroke="none"/><path d="M42 66 q8 6 16 0" fill="none" stroke="${D}" stroke-width="2.8" stroke-linecap="round"/>`+`</svg>`;
+  if(t==='claw')return open+`<g ${baseStroke}><path d="M62 26 q20 8 22 32" fill="none" stroke="${C}" stroke-width="7"/><path d="M20 38 A17 17 0 1 1 52 38" fill="${C}"/><path d="M24 58 A17 17 0 1 0 56 58" fill="${L}"/></g><path d="M28 34 A10 10 0 0 1 42 34" fill="none" stroke="${W}" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="30" r="2" fill="${P}" stroke="none"/>`+`</svg>`;
+  if(t==='whale')return open+`<g ${baseStroke}><path d="M76 44 q12 -4 18 -16 q-6 20 -18 24" fill="${L}"/><ellipse cx="48" cy="62" rx="34" ry="22" fill="${C}"/><path d="M18 62 q-8 8 -4 18 q10 -6 8 -14" fill="${L}"/></g><circle cx="68" cy="54" r="6" fill="${W}" stroke="${D}" stroke-width="3"/><circle cx="69" cy="53" r="2.2" fill="${K}"/><circle cx="66" cy="50" r="1.5" fill="${W}" stroke="none"/><path d="M60 70 q6 4 12 -2" fill="none" stroke="${D}" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="44" cy="64" rx="5" ry="3" fill="${P}" opacity=".7" stroke="none"/><g fill="${W}" stroke="none"><circle cx="34" cy="34" r="3"/><circle cx="42" cy="28" r="2.2"/><circle cx="28" cy="40" r="1.8"/></g>`+`</svg>`;
+  if(t==='shark')return open+`<g ${baseStroke}><path d="M78 48 l14 -8 q-4 14 -14 18" fill="${L}"/><ellipse cx="48" cy="60" rx="32" ry="22" fill="${C}"/><path d="M20 60 L8 52 L12 68 Z" fill="${L}"/></g><circle cx="68" cy="52" r="6" fill="${W}" stroke="${D}" stroke-width="3"/><circle cx="69" cy="51" r="2.2" fill="${K}"/><path d="M58 66 l4 -3 l4 3 l-4 3 z" fill="${W}" stroke="${D}" stroke-width="2"/><path d="M62 66 l-2 2 l2 2 l2 -2 z" fill="${P}" stroke="none"/><path d="M32 56 q4 4 8 0" fill="none" stroke="${D}" stroke-width="2" stroke-linecap="round"/><ellipse cx="40" cy="62" rx="4" ry="2.5" fill="${P}" opacity=".7" stroke="none"/>`+`</svg>`;
+  if(t==='rabbit')return open+`<g ${baseStroke}><ellipse cx="36" cy="34" rx="8" ry="22" fill="${W}" transform="rotate(-12 36 34)"/><ellipse cx="64" cy="34" rx="8" ry="22" fill="${W}" transform="rotate(12 64 34)"/><ellipse cx="36" cy="36" rx="4" ry="14" fill="${L}" transform="rotate(-12 36 36)"/><ellipse cx="64" cy="36" rx="4" ry="14" fill="${L}" transform="rotate(12 64 36)"/><ellipse cx="50" cy="66" rx="26" ry="22" fill="${W}"/></g><circle cx="40" cy="62" r="4.5" fill="${K}"/><circle cx="60" cy="62" r="4.5" fill="${K}"/><circle cx="41" cy="61" r="1.5" fill="${W}"/><circle cx="61" cy="61" r="1.5" fill="${W}"/><path d="M48 70 h4 l-2 3 z" fill="${P}" stroke="none"/><path d="M50 73 q-4 4 -8 1 M50 73 q4 4 8 1" stroke="${D}" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="34" cy="70" rx="3.5" ry="2.2" fill="${P}" opacity=".7" stroke="none"/><ellipse cx="66" cy="70" rx="3.5" ry="2.2" fill="${P}" opacity=".7" stroke="none"/>`+`</svg>`;
+  if(t==='cinnamoroll')return open+`<g ${baseStroke}><ellipse cx="22" cy="54" rx="16" ry="8" fill="${W}" transform="rotate(-15 22 54)"/><ellipse cx="78" cy="54" rx="16" ry="8" fill="${W}" transform="rotate(15 78 54)"/><ellipse cx="50" cy="62" rx="28" ry="20" fill="${W}"/></g><circle cx="38" cy="58" r="4.5" fill="${K}"/><circle cx="62" cy="58" r="4.5" fill="${K}"/><circle cx="39" cy="57" r="1.5" fill="${W}"/><circle cx="63" cy="57" r="1.5" fill="${W}"/><path d="M48 66 h4 l-2 3 z" fill="${P}" stroke="none"/><path d="M50 69 q-5 4 -9 1 M50 69 q5 4 9 1" stroke="${D}" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="32" cy="66" rx="3.5" ry="2.2" fill="${P}" opacity=".7" stroke="none"/><ellipse cx="68" cy="66" rx="3.5" ry="2.2" fill="${P}" opacity=".7" stroke="none"/><path d="M25 50 q5 -4 10 0" fill="none" stroke="${L}" stroke-width="2.5" stroke-linecap="round"/>`+`</svg>`;
+  // bowl
+  return open+`<g ${baseStroke}><path d="M24 44 h52 a4 4 0 0 1 4 4 v6 a26 26 0 0 1 -26 26 h-8 a26 26 0 0 1 -26 -26 v-6 a4 4 0 0 1 4 -4 z" fill="${C}"/></g><ellipse cx="50" cy="46" rx="28" ry="7" fill="${L}" stroke="${D}" stroke-width="3"/><g fill="${W}" stroke="none"><circle cx="42" cy="44" r="3"/><circle cx="52" cy="42" r="2.8"/><circle cx="60" cy="44" r="3.2"/></g><path d="M72 34 q-4 -6 -8 0 q-4 6 8 12 q12 -6 8 -12 q-4 -6 -8 0 z" fill="${P}" stroke="none"/>`+`</svg>`;
 }
 function stickerHero(seed){
-  const order=['crab','claw','cat','bowl'];const h=hashStr(String(seed||'x'));
-  const main=order[h%4],sub1=order[(h+1)%4],sub2=order[(h+2)%4];
+  const h=hashStr(String(seed||'x'));
+  const main=STICKER_TYPES[h%STICKER_TYPES.length],sub1=STICKER_TYPES[(h+1)%STICKER_TYPES.length],sub2=STICKER_TYPES[(h+2)%STICKER_TYPES.length];
   const r1=(h%14)-7,r2=((h>>2)%14)-7,r3=((h>>3)%12)-6,rm=(h%11)-5;
   return `<div class="sticker-hero">
     <div class="sm" style="left:10px;top:8px;transform:rotate(${r1}deg)">${stickerSVG(sub1,36)}</div>
@@ -439,6 +469,7 @@ function stickerHero(seed){
     <div class="sm" style="right:40px;top:10px;transform:rotate(${r3}deg)">${stickerSVG('claw',24)}</div>
   </div>`;
 }
+function stickerSide(seed,size){return stickerSVG(STICKER_TYPES[hashStr(String(seed||'x'))%STICKER_TYPES.length],size||56);}
 
 /* ---------- 云端同步（GitHub Gist，手机/电脑跨设备共享） ---------- */
 const CloudSync={
@@ -595,26 +626,26 @@ const app={
   skillOpts(sel){return this.LAPIAN_SKILLS.map(s=>`<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(s.name)}</option>`).join("");},
   /* 真实爆款短剧策展池（均为近年真实爆款剧名，未配 Key 时兜底，跳抖音/红果搜索看正片，免费且链接必达） */
   HONGGUO_POOL:[
-    {t:"逃出大英博物馆",d:"2023 现象级微短剧，博物馆文物拟人化，以小见大讲文物回家，全网刷屏。",tags:["现象级","文化","反转"]},
-    {t:"我在八零年代当后妈",d:"2024 爆款，穿越回八零当后妈，家长里短+搞事业，爽感拉满。",tags:["穿越","年代","爽剧"]},
-    {t:"二十九",d:"2024 爆款品牌短剧，30+ 女性职场与情感困局，真实戳心。",tags:["职场","女性","现实"]},
-    {t:"裴总每天都想父凭子贵",d:"霸总+萌宝爆款，带娃追妻，甜宠打脸一条龙。",tags:["霸总","萌宝","甜宠"]},
-    {t:"黑莲花攻略手册",d:"古装复仇爆款，女主步步为营反杀，后改编长剧。",tags:["古装","复仇","爽剧"]},
-    {t:"授她以柄",d:"权谋复仇爆款，女主以智破局，身份错位层层反转。",tags:["权谋","复仇","反转"]},
-    {t:"洗铅华",d:"古风爆款，洗去铅华见真心，虐恋与权谋交织。",tags:["古装","虐恋","权谋"]},
-    {t:"见君心",d:"古风爆款，双向暗恋+身份谜题，甜中带刀。",tags:["古风","暗恋","反转"]},
-    {t:"掌中雀",d:"古风权谋爆款，笼中鸟逆袭，掌控全局。",tags:["古装","权谋","逆袭"]},
-    {t:"锁爱",d:"豪门爆款，契约婚姻到真心锁爱，打脸不断。",tags:["豪门","契约","打脸"]},
-    {t:"以爱为营",d:"霸总爆款，职场+甜宠，后改编长剧热度更高。",tags:["霸总","职场","甜宠"]},
-    {t:"一念花开",d:"重生爆款，重生归来改写命运，事业爱情双线。",tags:["重生","逆袭","爽剧"]},
-    {t:"诱她",d:"暗恋爆款，温柔陷阱步步靠近，拉扯感强。",tags:["暗恋","拉扯","甜宠"]},
-    {t:"病娇王爷仵作妻",d:"古风探案爆款，仵作女主+病娇王爷，悬疑甜宠。",tags:["古装","探案","甜宠"]},
-    {t:"重回1990之霸道人生",d:"重生年代爆款，回到九零搞事业赚翻。",tags:["重生","年代","商战"]},
-    {t:"重生八零我成了首富",d:"年代重生爆款，卤味摊到商业帝国，爽感足。",tags:["重生","年代","创业"]},
-    {t:"闪婚老公是首富",d:"闪婚甜宠爆款，错嫁真豪门，身份反转。",tags:["闪婚","甜宠","身份"]},
-    {t:"千金丫鬟",d:"豪门丫鬟爆款，底层逆袭打脸全场。",tags:["豪门","逆袭","打脸"]},
-    {t:"大妈的世界",d:"都市喜剧微短剧爆款，中老年视角反差笑点。",tags:["喜剧","都市","反差"]},
-    {t:"厉总，夫人她又美又飒",d:"经典霸总套路爆款，女主飒爽打脸，节奏快。",tags:["霸总","打脸","爽剧"]}
+    {t:"逃出大英博物馆",d:"2023 现象级微短剧，博物馆文物拟人化，以小见大讲文物回家，全网刷屏。",platform:"抖音",tags:["现象级","文化","反转"]},
+    {t:"我在八零年代当后妈",d:"2024 爆款，穿越回八零当后妈，家长里短+搞事业，爽感拉满。",platform:"红果",tags:["穿越","年代","爽剧"]},
+    {t:"二十九",d:"2024 爆款品牌短剧，30+ 女性职场与情感困局，真实戳心。",platform:"抖音",tags:["职场","女性","现实"]},
+    {t:"裴总每天都想父凭子贵",d:"霸总+萌宝爆款，带娃追妻，甜宠打脸一条龙。",platform:"红果",tags:["霸总","萌宝","甜宠"]},
+    {t:"黑莲花攻略手册",d:"古装复仇爆款，女主步步为营反杀，后改编长剧。",platform:"快手",tags:["古装","复仇","爽剧"]},
+    {t:"授她以柄",d:"权谋复仇爆款，女主以智破局，身份错位层层反转。",platform:"红果",tags:["权谋","复仇","反转"]},
+    {t:"洗铅华",d:"古风爆款，洗去铅华见真心，虐恋与权谋交织。",platform:"抖音",tags:["古装","虐恋","权谋"]},
+    {t:"见君心",d:"古风爆款，双向暗恋+身份谜题，甜中带刀。",platform:"快手",tags:["古风","暗恋","反转"]},
+    {t:"掌中雀",d:"古风权谋爆款，笼中鸟逆袭，掌控全局。",platform:"红果",tags:["古装","权谋","逆袭"]},
+    {t:"锁爱",d:"豪门爆款，契约婚姻到真心锁爱，打脸不断。",platform:"抖音",tags:["豪门","契约","打脸"]},
+    {t:"以爱为营",d:"霸总爆款，职场+甜宠，后改编长剧热度更高。",platform:"抖音",tags:["霸总","职场","甜宠"]},
+    {t:"一念花开",d:"重生爆款，重生归来改写命运，事业爱情双线。",platform:"快手",tags:["重生","逆袭","爽剧"]},
+    {t:"诱她",d:"暗恋爆款，温柔陷阱步步靠近，拉扯感强。",platform:"红果",tags:["暗恋","拉扯","甜宠"]},
+    {t:"病娇王爷仵作妻",d:"古风探案爆款，仵作女主+病娇王爷，悬疑甜宠。",platform:"红果",tags:["古装","探案","甜宠"]},
+    {t:"重回1990之霸道人生",d:"重生年代爆款，回到九零搞事业赚翻。",platform:"抖音",tags:["重生","年代","商战"]},
+    {t:"重生八零我成了首富",d:"年代重生爆款，卤味摊到商业帝国，爽感足。",platform:"快手",tags:["重生","年代","创业"]},
+    {t:"闪婚老公是首富",d:"闪婚甜宠爆款，错嫁真豪门，身份反转。",platform:"红果",tags:["闪婚","甜宠","身份"]},
+    {t:"千金丫鬟",d:"豪门丫鬟爆款，底层逆袭打脸全场。",platform:"抖音",tags:["豪门","逆袭","打脸"]},
+    {t:"大妈的世界",d:"都市喜剧微短剧爆款，中老年视角反差笑点。",platform:"抖音",tags:["喜剧","都市","反差"]},
+    {t:"厉总，夫人她又美又飒",d:"经典霸总套路爆款，女主飒爽打脸，节奏快。",platform:"快手",tags:["霸总","打脸","爽剧"]}
   ],
   async ensureFeed(){
     const c=load("config",{});
@@ -663,7 +694,7 @@ const app={
     const pool=this.HONGGUO_POOL;
     const rot=(board==="week"?7:0)+(new Date().getDate()%pool.length);
     const out=[];
-    for(let i=0;i<20;i++){const p=pool[(i+rot)%pool.length];out.push({t:p.t,d:p.d,tags:p.tags,cover:"",platform:"爆款短剧",url:"https://www.douyin.com/search/"+encodeURIComponent(p.t)});}
+    for(let i=0;i<20;i++){const p=pool[(i+rot)%pool.length];out.push({t:p.t,d:p.d,tags:p.tags,cover:"",platform:p.platform||"抖音",url:"https://www.douyin.com/search/"+encodeURIComponent(p.t)});}
     return out;
   },
   async aiFeed(board){
@@ -673,12 +704,17 @@ const app={
     if(!c.endpoint||!c.key) return null;
     const period=board==="week"?"最近一周":"今天";
     const sys="你是短剧爆款数据分析师，熟悉抖音、红果、快手上的微短剧。只输出 JSON，不要任何解释文字。";
-    const user="请列出"+period+"最热门的 20 部短剧（含微短剧/男频女频）剧名。每部给：t=剧名，d=1-2 句爆款简介，tags=3 个风格标签(如 霸总/重生/甜宠)。严格只输出 JSON 数组，格式：[{\"t\":\"剧名\",\"d\":\"简介\",\"tags\":[\"标签1\",\"标签2\",\"标签3\"]}]，不要 markdown、不要额外文字。";
+    const user="请列出"+period+"最热门的 20 部短剧（含微短剧/男频女频）剧名。每部给：t=剧名，d=1-2 句爆款简介，tags=3 个风格标签(如 霸总/重生/甜宠)，platform=该剧主要爆火平台（只能选：抖音、红果、快手 之一）。严格只输出 JSON 数组，格式：[{\"t\":\"剧名\",\"d\":\"简介\",\"tags\":[\"标签1\",\"标签2\",\"标签3\"],\"platform\":\"抖音\"}]，不要 markdown、不要额外文字。";
     const r=await this.callAI(sys,user);
     if(!r.ok) return null;
     let arr=extractJSON(r.text);
     if(!Array.isArray(arr)||!arr.length) return null;
-    arr=arr.slice(0,20).map(x=>({t:String(x.t||"").slice(0,40),d:String(x.d||"").slice(0,120),tags:Array.isArray(x.tags)?x.tags.slice(0,3).map(String):[]}));
+    const PLATS={"抖音":"抖音","红果":"红果","快手":"快手"};
+    arr=arr.slice(0,20).map(x=>{
+      let p=String(x.platform||"").replace(/[\s]+/g,"");
+      if(!PLATS[p]) p="抖音";
+      return {t:String(x.t||"").slice(0,40),d:String(x.d||"").slice(0,120),tags:Array.isArray(x.tags)?x.tags.slice(0,3).map(String):[],platform:PLATS[p]};
+    });
     c.aiFeed={date:td,items:{day:c.aiFeed.items.day||[],week:c.aiFeed.items.week||[]}};
     c.aiFeed.items[board]=arr;save("config",c);
     return arr;
@@ -717,21 +753,24 @@ const app={
     box.innerHTML=feed.items.map(x=>{
       const hw=tasks.find(t=>t.feedId===x.id);
       const done=hw&&hw.status==="done";
-      const sticker=stickerHero(x.id);
-      return `<div class="item vcard ${done?'done':''}">
-        ${sticker}
-        <div class="body">
+      const side=stickerSide(x.id,58);
+      const plat=esc(x.platform||"爆款短剧");
+      return `<div class="cj-card ${done?'done':''}">
+        <div class="cj-left">
+          ${side}
           <h4>${esc(x.title)}</h4>
-          <div class="meta">🔥 爆款短剧 · ${(b==="week"?"每周榜":"每日榜")}${x.playNum?(' · '+esc(x.playNum)):''}</div>
-          <div class="tags">${x.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+        </div>
+        <div class="cj-mid">
+          <div class="meta">🔥 ${plat} · ${(b==="week"?"每周榜":"每日榜")}${x.playNum?(' · '+esc(x.playNum)):''}</div>
           <p class="desc">${esc(x.desc)}</p>
-          <div class="acts">
-            <button class="btn sm" onclick="app.copyName('${esc(x.title)}')">📋 复制剧名</button>
-            <button class="btn sm" onclick="app.jumpApp('抖音','${esc(x.title)}')">抖音</button>
-            <button class="btn sm" onclick="app.jumpApp('红果','${esc(x.title)}')">红果</button>
-            <button class="btn sm" onclick="app.jumpApp('快手','${esc(x.title)}')">快手</button>
-            <button class="btn sm ${done?'ghost':''}" onclick="app.openTask('${x.id}')">${done?'✓ 看作业':'✍ 写拆解'}</button>
-          </div>
+          <div class="tags">${x.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+        </div>
+        <div class="cj-right">
+          <button class="btn sm" onclick="app.copyName('${esc(x.title)}')">📋 复制</button>
+          <button class="btn sm" onclick="app.jumpApp('抖音','${esc(x.title)}')">抖音</button>
+          <button class="btn sm" onclick="app.jumpApp('红果','${esc(x.title)}')">红果</button>
+          <button class="btn sm" onclick="app.jumpApp('快手','${esc(x.title)}')">快手</button>
+          <button class="btn sm ${done?'ghost':''}" onclick="app.openTask('${x.id}')">${done?'✓ 看作业':'✍ 写拆解'}</button>
         </div>
       </div>`;
     }).join("");
@@ -887,14 +926,37 @@ const app={
     const box=$("#catHome");
     box.innerHTML=`<div class="cat-stage">
       <svg class="cat-svg" viewBox="0 0 120 120">
-        <ellipse cx="60" cy="100" rx="34" ry="10" fill="#bcd4f5" opacity=".5"/>
-        <path d="M30 60 q-6 -22 12 -26 q4 -14 18 -10 q14 -4 18 10 q18 4 12 26 q4 26 -18 34 q-22 8 -26 -18 q-12 -8 -16 -26z" fill="#3b82f6"/>
-        <path d="M34 40 l8 14 l-16 0 z" fill="#3b82f6"/><path d="M86 40 l-8 14 l16 0 z" fill="#3b82f6"/>
-        <circle cx="48" cy="62" r="5" fill="#0b3d91"/><circle cx="72" cy="62" r="5" fill="#0b3d91"/>
-        <circle cx="49.5" cy="60.5" r="1.6" fill="#fff"/><circle cx="73.5" cy="60.5" r="1.6" fill="#fff"/>
-        <path d="M56 74 q4 4 8 0" stroke="#0b3d91" stroke-width="2" fill="none"/>
-        <path d="M44 70 q-3 3 -6 2 M76 70 q3 3 6 2" stroke="#0b3d91" stroke-width="2" fill="none"/>
-        <text x="60" y="112" text-anchor="middle" font-size="12" fill="#1d4ed8" font-weight="bold">蓝色猫咪 Lv.${cat.level||1}</text>
+        <ellipse cx="60" cy="104" rx="34" ry="10" fill="#bcd4f5" opacity=".45"/>
+        <!-- 尾巴 -->
+        <path d="M82 82 q18 -4 22 -18 q4 -12 -4 -16 q-10 -4 -12 8 q-2 10 -8 16" fill="none" stroke="#5B9AFA" stroke-width="10" stroke-linecap="round"/>
+        <!-- 身体（白） -->
+        <ellipse cx="60" cy="72" rx="30" ry="26" fill="#FFFFFF" stroke="#3A6FC8" stroke-width="3.5"/>
+        <!-- 蓝色斑纹 -->
+        <path d="M42 50 q18 -6 36 0" fill="none" stroke="#B8D6FF" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="75" cy="62" r="5" fill="#B8D6FF" opacity=".8"/>
+        <circle cx="48" cy="78" r="4" fill="#B8D6FF" opacity=".6"/>
+        <!-- 耳朵 -->
+        <path d="M32 48 L28 24 L48 40 Z" fill="#5B9AFA" stroke="#3A6FC8" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M88 48 L92 24 L72 40 Z" fill="#5B9AFA" stroke="#3A6FC8" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M34 44 L31 30 L44 40 Z" fill="#B8D6FF"/>
+        <path d="M86 44 L89 30 L76 40 Z" fill="#B8D6FF"/>
+        <!-- 眼睛 -->
+        <circle cx="45" cy="66" r="5.5" fill="#1C3A6E"/>
+        <circle cx="75" cy="66" r="5.5" fill="#1C3A6E"/>
+        <circle cx="46.5" cy="64.5" r="2" fill="#FFFFFF"/>
+        <circle cx="76.5" cy="64.5" r="2" fill="#FFFFFF"/>
+        <!-- 腮红 -->
+        <ellipse cx="35" cy="74" rx="5" ry="3" fill="#FFB6C1" opacity=".8"/>
+        <ellipse cx="85" cy="74" rx="5" ry="3" fill="#FFB6C1" opacity=".8"/>
+        <!-- 鼻子嘴 -->
+        <path d="M58 74 h4 l-2 3 z" fill="#FFB6C1" stroke="none"/>
+        <path d="M60 77 q-4 4 -8 2 M60 77 q4 4 8 2" stroke="#3A6FC8" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <!-- 胡须 -->
+        <g stroke="#3A6FC8" stroke-width="1.8" stroke-linecap="round" fill="none">
+          <path d="M30 70 L18 68 M30 74 L18 76"/>
+          <path d="M90 70 L102 68 M90 74 L102 76"/>
+        </g>
+        <text x="60" y="116" text-anchor="middle" font-size="12" fill="#1d4ed8" font-weight="bold">蓝色猫咪 Lv.${cat.level||1}</text>
       </svg>
       <div class="mood">${mood}</div>
       <button class="btn" style="margin-top:12px" ${fedToday?'disabled':''} onclick="app.feedCat()">${fedToday?'今天已喂过 🐾':'🍽 喂一颗猫粮'}</button>
