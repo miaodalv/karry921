@@ -119,6 +119,10 @@
 
   .cover{width:100%;height:150px;object-fit:cover;border-radius:16px;background:linear-gradient(120deg,var(--blue),var(--blue-light));}
   .cover-empty{display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;border-radius:16px;background:linear-gradient(120deg,var(--blue),var(--blue-light));height:150px;cursor:pointer;}
+  /* 拆解台：蓝色主题贴纸墙（替代封面框） */
+  .sticker-hero{position:relative;height:118px;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 12px 12px, rgba(255,255,255,.6) 3px, transparent 4px) 0 0/26px 26px, linear-gradient(140deg,#e7f0ff,#cfe0ff);display:flex;align-items:center;justify-content:center;}
+  .sticker-hero svg{display:block;filter:drop-shadow(0 4px 5px rgba(30,70,160,.28));}
+  .sticker-hero .sm{position:absolute;}
 
   .note{background:#fff8e6;border:1px solid #ffe6a8;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#8a6d1f;line-height:1.6;margin-bottom:12px;}
   .note.blue{background:#eef5ff;border-color:var(--line);color:var(--blue-deep);}
@@ -414,6 +418,27 @@ function weekKey(){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.get
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function extractJSON(s){if(!s)return null;try{return JSON.parse(s);}catch(e){}const m=s.match(/\[[\s\S]*\]/);if(m){try{return JSON.parse(m[0]);}catch(e){}}const m2=s.match(/\{[\s\S]*\}/);if(m2){try{return JSON.parse(m2[0]);}catch(e){}}return null;}
+/* ===== 蓝色主题贴纸（卡通螃蟹/蟹钳/小猫/猫粮碗），内联 SVG，零外部依赖 ===== */
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return Math.abs(h);}
+function stickerSVG(type,size){
+  const open=`<svg viewBox="0 0 100 100" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
+  const C='#2f6bff',L='#9cc0ff',W='#ffffff';
+  if(type==='cat')return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round"><path d="M26 34 L20 10 L46 26 Z" fill="${C}"/><path d="M74 34 L80 10 L54 26 Z" fill="${C}"/><path d="M30 30 L27 17 L41 27 Z" fill="${L}" stroke="none"/><path d="M70 30 L73 17 L59 27 Z" fill="${L}" stroke="none"/><circle cx="50" cy="56" r="30" fill="${C}"/></g><ellipse cx="40" cy="54" rx="5.5" ry="7" fill="${W}"/><ellipse cx="60" cy="54" rx="5.5" ry="7" fill="${W}"/><circle cx="40" cy="55" r="3" fill="#16306e"/><circle cx="60" cy="55" r="3" fill="#16306e"/><path d="M47 64 L53 64 L50 69 Z" fill="#ff9ec4" stroke="none"/><path d="M50 69 q-6 6 -12 2 M50 69 q6 6 12 2" stroke="#16306e" stroke-width="2.5" fill="none" stroke-linecap="round"/><g stroke="${W}" stroke-width="2.5" stroke-linecap="round"><path d="M22 58 L8 54 M22 64 L8 66"/><path d="M78 58 L92 54 M78 64 L92 66"/></g>`+`</svg>`;
+  if(type==='crab')return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M30 66 q-12 4 -15 15" fill="none" stroke="${C}"/><path d="M34 72 q-10 10 -8 20" fill="none" stroke="${C}"/><path d="M70 66 q12 4 15 15" fill="none" stroke="${C}"/><path d="M66 72 q10 10 8 20" fill="none" stroke="${C}"/><ellipse cx="50" cy="56" rx="26" ry="18" fill="${C}"/><path d="M44 40 L43 28" fill="none" stroke="${C}"/><path d="M56 40 L57 28" fill="none" stroke="${C}"/><path d="M26 52 q-12 -4 -16 -14" fill="none" stroke="${C}" stroke-width="6"/><path d="M6 34 q-4 5 2 11 q6 -2 2 -11 z" fill="#3f7bff"/><path d="M74 52 q12 -4 16 -14" fill="none" stroke="${C}" stroke-width="6"/><path d="M94 34 q4 5 -2 11 q-6 -2 -2 -11 z" fill="#3f7bff"/></g><circle cx="44" cy="26" r="6" fill="${W}"/><circle cx="56" cy="26" r="6" fill="${W}"/><circle cx="44" cy="27" r="3" fill="#16306e"/><circle cx="56" cy="27" r="3" fill="#16306e"/><path d="M40 60 q10 8 20 0" fill="none" stroke="#16306e" stroke-width="2.5" stroke-linecap="round"/>`+`</svg>`;
+  if(type==='claw')return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M64 28 q22 8 24 34" fill="none" stroke="${C}" stroke-width="8"/><path d="M18 40 A16 16 0 1 1 50 40" fill="${C}"/><path d="M22 60 A16 16 0 1 0 54 60" fill="#3f7bff"/></g><path d="M26 36 A10 10 0 0 1 42 36" fill="none" stroke="${L}" stroke-width="3" stroke-linecap="round"/>`+`</svg>`;
+  return open+`<g stroke="${W}" stroke-width="4" stroke-linejoin="round"><path d="M20 52 h60 a8 8 0 0 1 -8 20 h-44 a8 8 0 0 1 -8 -20 z" fill="${L}"/><ellipse cx="50" cy="52" rx="30" ry="9" fill="#cfe0ff"/></g><g fill="#7a4a23" stroke="none"><circle cx="42" cy="50" r="3.2"/><circle cx="52" cy="48" r="3.2"/><circle cx="60" cy="51" r="3.2"/><circle cx="47" cy="53" r="3"/><circle cx="56" cy="54" r="3"/></g><path d="M72 28 q-5 -7 -10 0 q-5 7 10 14 q15 -7 10 -14 q-5 -7 -10 0 z" fill="#ff9ec4" stroke="none"/>`+`</svg>`;
+}
+function stickerHero(seed){
+  const order=['crab','claw','cat','bowl'];const h=hashStr(String(seed||'x'));
+  const main=order[h%4],sub1=order[(h+1)%4],sub2=order[(h+2)%4];
+  const r1=(h%14)-7,r2=((h>>2)%14)-7,r3=((h>>3)%12)-6,rm=(h%11)-5;
+  return `<div class="sticker-hero">
+    <div class="sm" style="left:10px;top:8px;transform:rotate(${r1}deg)">${stickerSVG(sub1,36)}</div>
+    <div style="transform:rotate(${rm}deg)">${stickerSVG(main,72)}</div>
+    <div class="sm" style="right:12px;bottom:8px;transform:rotate(${r2}deg)">${stickerSVG(sub2,34)}</div>
+    <div class="sm" style="right:40px;top:10px;transform:rotate(${r3}deg)">${stickerSVG('claw',24)}</div>
+  </div>`;
+}
 
 /* ---------- 云端同步（GitHub Gist，手机/电脑跨设备共享） ---------- */
 const CloudSync={
@@ -692,9 +717,9 @@ const app={
     box.innerHTML=feed.items.map(x=>{
       const hw=tasks.find(t=>t.feedId===x.id);
       const done=hw&&hw.status==="done";
-      const cover=x.cover?`<div class="cover" style="background-image:url('${esc(x.cover)}');background-size:cover;background-position:center;cursor:pointer;" onclick="app.openTask('${x.id}')"></div>`:`<div class="cover ph" onclick="app.openTask('${x.id}')">🎬</div>`;
+      const sticker=stickerHero(x.id);
       return `<div class="item vcard ${done?'done':''}">
-        ${cover}
+        ${sticker}
         <div class="body">
           <h4>${esc(x.title)}</h4>
           <div class="meta">🔥 爆款短剧 · ${(b==="week"?"每周榜":"每日榜")}${x.playNum?(' · '+esc(x.playNum)):''}</div>
