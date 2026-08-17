@@ -170,9 +170,10 @@
   /* 拆解台卡片：左侧贴纸+标题 / 中间信息 / 右侧按钮 */
   .cj-card{display:flex;align-items:stretch;gap:12px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;}
   .cj-card.done{outline:2px solid #16a34a;}
-  .cj-left{width:76px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;}
-  .cj-left h4{margin:0;font-size:13px;line-height:1.35;text-align:center;word-break:break-all;}
-  .cj-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center;}
+  .cj-left{width:80px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+  .cj-sticker-img{width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(30,70,160,.22));}
+  .cj-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:center;}
+  .cj-mid h4{margin:0;font-size:14px;line-height:1.4;font-weight:700;color:#16306e;word-break:break-all;}
   .cj-mid .meta{font-size:11px;color:var(--muted);}
   .cj-mid .desc{font-size:12px;color:#445;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
   .cj-mid .tags{display:flex;gap:5px;flex-wrap:wrap;}
@@ -470,6 +471,8 @@ function stickerHero(seed){
   </div>`;
 }
 function stickerSide(seed,size){return stickerSVG(STICKER_TYPES[hashStr(String(seed||'x'))%STICKER_TYPES.length],size||56);}
+/* 优先用图纸导出的贴纸图片(stickers/<type>.png)，加载失败回退到 SVG */
+function stickerSlot(seed){const type=STICKER_TYPES[hashStr(String(seed||'x'))%STICKER_TYPES.length];return `<img class="cj-sticker-img" src="stickers/${type}.png" alt="${type}" onerror="this.onerror=null;this.outerHTML=stickerSide('${seed}',60)">`;}
 
 /* ---------- 云端同步（GitHub Gist，手机/电脑跨设备共享） ---------- */
 const CloudSync={
@@ -753,14 +756,11 @@ const app={
     box.innerHTML=feed.items.map(x=>{
       const hw=tasks.find(t=>t.feedId===x.id);
       const done=hw&&hw.status==="done";
-      const side=stickerSide(x.id,58);
       const plat=esc(x.platform||"爆款短剧");
       return `<div class="cj-card ${done?'done':''}">
-        <div class="cj-left">
-          ${side}
-          <h4>${esc(x.title)}</h4>
-        </div>
+        <div class="cj-left">${stickerSlot(x.id)}</div>
         <div class="cj-mid">
+          <h4>${esc(x.title)}</h4>
           <div class="meta">🔥 ${plat} · ${(b==="week"?"每周榜":"每日榜")}${x.playNum?(' · '+esc(x.playNum)):''}</div>
           <p class="desc">${esc(x.desc)}</p>
           <div class="tags">${x.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
